@@ -255,6 +255,7 @@ ace-studio/
 3. **M3 — 打開目錄/複製prompt + 設定 modal**：本機代理開檔總管；設定頁串 /v1/init 參數。
 4. **M4 — AI 助手**：Claude 代理 + tool-use 動作卡。
 5. **M5 — 定時排程**：見 §13。
+6. **M6 — SFX 引擎（雙引擎）**：接 AudioGen(MIT) 做 1–2 秒離散音效；前端加 BGM/SFX 類型切換。見 [SFX-ENGINE.md](SFX-ENGINE.md)。
 
 ---
 
@@ -266,4 +267,16 @@ ace-studio/
 - **query_result status 字串對應**：實際字面值（queued/running/succeed/failed…）以打一次為準，對照 `acestep/api/jobs/store.py` 的狀態。
 - **/release_task 內容型別**：支援 JSON 與 multipart（上傳參考音檔時用 multipart）。text2music 用 JSON 即可。
 - **長度上限**：8GB + turbo 實測可生成的最長秒數需驗證（OOM 時回 error，UI 已有提示）。
-```
+- **長度下限**：ACE-Step `DURATION_MIN=10`（no-LM 實測 ~5s）→ **做不出 <5s 音效**。BGM 長度滑桿最小 5s；短音效走 SFX 引擎或裁切。
+
+---
+
+## 14. 雙引擎（BGM + SFX）
+
+ACE Studio 設計成**引擎可插拔**：前端依「類型」把請求路由到不同後端，皆包成統一 `/generate` 合約。
+- **BGM** → `engine/`（ACE-Step，本規格主體）。
+- **SFX** → `engine-sfx/`（AudioGen，MIT，可商用，做 1–2 秒離散音效）。
+
+完整選型比較、授權、AudioGen wrapper、8GB 載入策略、SFX prompt 風格見 **[SFX-ENGINE.md](SFX-ENGINE.md)**。
+
+**對 M1 的影響**：`server/` 的 adapter 一開始就用統一 `/generate` 合約（即使只有 BGM 一個後端），之後加 SFX 只是多註冊一個後端，不用重構。
