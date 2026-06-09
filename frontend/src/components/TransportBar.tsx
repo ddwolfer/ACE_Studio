@@ -16,6 +16,7 @@ export default function TransportBar() {
   const [copied, setCopied] = useState(false)
   const [volume, setVolume] = useState(0.8)
   const [loop, setLoop] = useState(false)
+  const [folderErr, setFolderErr] = useState(false)
 
   useEffect(() => {
     loopRef.current = loop
@@ -76,6 +77,23 @@ export default function TransportBar() {
     setTimeout(() => setCopied(false), 1500)
   }
 
+  // 透過本機小幫手在檔案總管開啟（需 run-local 服務）
+  const openFolder = async () => {
+    if (!current) return
+    try {
+      const r = await fetch('http://127.0.0.1:8787/open-folder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: current.audioPath }),
+      })
+      if (!r.ok) throw new Error()
+      setFolderErr(false)
+    } catch {
+      setFolderErr(true)
+      setTimeout(() => setFolderErr(false), 2800)
+    }
+  }
+
   return (
     <footer
       className="fade-up flex items-center gap-3 border-t border-edge bg-panel/90 px-5 backdrop-blur"
@@ -132,11 +150,12 @@ export default function TransportBar() {
       </div>
 
       <button
-        disabled
-        title="M3 開放：在檔案總管開啟所在資料夾"
-        className="flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs text-txt-dim opacity-50"
+        onClick={openFolder}
+        disabled={!current}
+        title="在檔案總管開啟所在資料夾（需先啟動 run-local 本機服務）"
+        className="flex shrink-0 items-center gap-1.5 rounded-md border border-edge px-3 py-1.5 text-xs text-txt-sec transition hover:text-txt disabled:opacity-40"
       >
-        <FolderOpen size={14} /> 打開本地目錄
+        <FolderOpen size={14} /> {folderErr ? '需啟動 run-local' : '打開本地目錄'}
       </button>
       <button
         onClick={copyPrompt}
