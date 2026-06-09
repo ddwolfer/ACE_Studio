@@ -6,17 +6,52 @@ import { useGen } from '../stores/genStore'
 const fmt = (s: number) =>
   Number.isFinite(s) ? `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}` : '0:00'
 
+// 找出實際有聲音的區間（略過頭尾靜音），讓循環無縫
+function findLoopRegion(buf: AudioBuffer, thresh = 0.006): { start: number; end: number } {
+  const len = buf.length
+  const sr = buf.sampleRate
+  const ch = buf.numberOfChannels
+  const chans: Float32Array[] = []
+  for (let c = 0; c < ch; c++) chans.push(buf.getChannelData(c))
+  const amp = (i: number) => {
+    let m = 0
+    for (let c = 0; c < ch; c++) {
+      const v = Math.abs(chans[c][i])
+      if (v > m) m = v
+    }
+    return m
+  }
+  let s = 0
+  for (let i = 0; i < len; i++) {
+    if (amp(i) > thresh) {
+      s = i
+      break
+    }
+  }
+  let e = len - 1
+  for (let i = len - 1; i >= 0; i--) {
+    if (amp(i) > thresh) {
+      e = i
+      break
+    }
+  }
+  return { start: Math.max(0, s / sr - 0.02), end: Math.min(len / sr, e / sr + 0.04) }
+}
+
 export default function TransportBar() {
   const current = useGen((s) => s.current)
   const containerRef = useRef<HTMLDivElement>(null)
   const wsRef = useRef<WaveSurfer | null>(null)
   const loopRef = useRef(false)
+  const loopStartRef = useRef(0)
+  const loopEndRef = useRef(0)
   const [playing, setPlaying] = useState(false)
   const [time, setTime] = useState('0:00 / 0:00')
   const [copied, setCopied] = useState(false)
   const [volume, setVolume] = useState(0.8)
   const [loop, setLoop] = useState(false)
   const [folderErr, setFolderErr] = useState(false)
+  const [loopRegion, setLoopRegion] = useState<{ start: number; end: number } | null>(null)
 
   useEffect(() => {
     loopRef.current = loop
@@ -46,15 +81,33 @@ export default function TransportBar() {
     const update = () => setTime(`${fmt(ws.getCurrentTime())} / ${fmt(ws.getDuration())}`)
     ws.on('ready', () => {
       ws.setVolume(volume)
+      const data = ws.getDecodedData()
+      const dur = ws.getDuration()
+      if (data) {
+        const r = findLoopRegion(data)
+        loopStartRef.current = r.start
+        loopEndRef.current = r.end
+        // 只有頭尾確實有可觀的空白才提示/啟用裁切
+        setLoopRegion(r.start > 0.05 || r.end < dur - 0.08 ? r : null)
+      } else {
+        loopStartRef.current = 0
+        loopEndRef.current = dur
+        setLoopRegion(null)
+      }
       update()
     })
-    ws.on('timeupdate', update)
+    ws.on('timeupdate', () => {
+      update()
+      // 單曲循環：到「聲音結束點」就跳回「聲音起始點」，略過尾巴空白 → 無縫
+      if (loopRef.current && loopEndRef.current > 0 && ws.getCurrentTime() >= loopEndRef.current) {
+        ws.setTime(loopStartRef.current)
+      }
+    })
     ws.on('play', () => setPlaying(true))
     ws.on('pause', () => setPlaying(false))
     ws.on('finish', () => {
-      // 單曲循環：聽 BGM 的 loop 接點是否順
       if (loopRef.current) {
-        ws.seekTo(0)
+        ws.setTime(loopStartRef.current)
         ws.play()
       } else {
         setPlaying(false)
@@ -121,7 +174,13 @@ export default function TransportBar() {
       <div className="ml-1 w-44 shrink-0">
         <div className="truncate text-sm font-medium text-txt">{current?.title ?? '尚無播放'}</div>
         <div className="truncate text-[11px] text-txt-dim">
-          {current ? (loop ? '單曲循環中' : current.finalCaption) : '生成後在此播放'}
+          {current
+            ? loop
+              ? loopRegion
+                ? `單曲循環 · 已略過頭尾空白（${fmt(loopRegion.start)}–${fmt(loopRegion.end)}）`
+                : '單曲循環中'
+              : current.finalCaption
+            : '生成後在此播放'}
         </div>
       </div>
 
