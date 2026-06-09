@@ -16,10 +16,15 @@ export default function App() {
     <div className="relative z-10 flex h-full flex-col font-ui text-txt">
       <TopBar />
       <div className="flex min-h-0 flex-1">
-        <PresetSidebar />
-        <main className="fade-up min-w-0 flex-1 overflow-y-auto p-6" style={{ animationDelay: '0.1s' }}>
+        {/* 左：精簡建立面板 */}
+        <aside
+          className="fade-up flex w-[360px] shrink-0 flex-col gap-5 overflow-y-auto border-r border-edge bg-panel/50 p-5"
+          style={{ animationDelay: '0.05s' }}
+        >
+          <PresetSidebar />
           <SingleGen />
-        </main>
+        </aside>
+        {/* 中：音檔庫工作區（主角） */}
         <Library />
       </div>
       <TransportBar />

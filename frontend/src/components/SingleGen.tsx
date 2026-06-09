@@ -10,7 +10,7 @@ export default function SingleGen() {
   const busy = g.status === 'generating'
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-5">
+    <div className="flex flex-col gap-4">
       <div>
         <label className="mb-2 block text-xs font-medium text-txt-sec">曲風描述 (Caption)</label>
         <textarea
