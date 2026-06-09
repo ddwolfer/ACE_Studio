@@ -275,7 +275,7 @@ ace-studio/
 
 ACE Studio 設計成**引擎可插拔**：前端依「類型」把請求路由到不同後端，皆包成統一 `/generate` 合約。
 - **BGM** → `engine/`（ACE-Step，本規格主體）。
-- **SFX** → `engine-sfx/`（AudioGen，MIT，可商用，做 1–2 秒離散音效）。
+- **SFX** → `engine-sfx/`（預設 **Stable Audio Open**：音質佳、<$1M 商用免費但需掛「Powered by Stability AI」；備案 **AudioGen** MIT 零條件）。做 0.5–2 秒離散音效。
 
 完整選型比較、授權、AudioGen wrapper、8GB 載入策略、SFX prompt 風格見 **[SFX-ENGINE.md](SFX-ENGINE.md)**。
 

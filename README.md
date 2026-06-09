@@ -91,7 +91,7 @@ ACE_Studio/
 | [docs/PROMPT-GUIDE.md](docs/PROMPT-GUIDE.md) | Prompt 撰寫指南（遊戲 BGM / 音效配方） |
 | [docs/WEB-UI-GUIDE.md](docs/WEB-UI-GUIDE.md) | ACE-Step 原生 Web UI 名詞白話說明（含 8GB 建議設定） |
 | [docs/COMFYUI-GUIDE.md](docs/COMFYUI-GUIDE.md) | ComfyUI 節點串接教學 |
-| [docs/SFX-ENGINE.md](docs/SFX-ENGINE.md) | 加入短音效引擎（AudioGen / 雙引擎）+ 授權比較（商用看這份） |
+| [docs/SFX-ENGINE.md](docs/SFX-ENGINE.md) | 加入短音效引擎（雙引擎，預設 Stable Audio Open / 備案 AudioGen）+ 授權比較（商用看這份） |
 | [docs/README.md](docs/README.md) | 研究總覽 + CLI 工具（`docs/scripts/`，實際跑在 `engine/scripts/`） |
 | docs/prompts/ | 場景/音效 prompt 範例庫 |
 
@@ -106,7 +106,7 @@ ACE_Studio/
 - [x] 專案結構（引擎解耦、可上 GitHub）
 - [ ] **M1**：走通單首生成（前端 + dev proxy + 播放器 + 音檔庫）
 - [ ] M2：場景/模板 + 批次　/　M3：開檔總管+複製prompt+設定　/　M4：AI 助手　/　M5：定時排程
-- [ ] **M6**：SFX 引擎（AudioGen，MIT）+ BGM/SFX 類型切換 → 同面板產 BGM 與音效
+- [ ] **M6**：SFX 引擎（預設 Stable Audio Open / 備案 AudioGen）+ BGM/SFX 類型切換 → 同面板產 BGM 與音效
 
 ---
 
