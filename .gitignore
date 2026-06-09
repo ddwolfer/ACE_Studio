@@ -35,3 +35,5 @@ Thumbs.db
 
 # dual-plan 渲染檔（plan.md 才是正本）
 plans/**/plan.html
+frontend/vite.config.js
+frontend/vite.config.d.ts
