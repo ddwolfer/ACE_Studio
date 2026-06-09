@@ -42,6 +42,19 @@ export default function SingleGen() {
         純音樂 (Instrumental)
       </label>
 
+      <label className="flex items-center gap-3 text-sm">
+        <input
+          type="checkbox"
+          checked={g.autoTrim}
+          onChange={(e) => g.setAutoTrim(e.target.checked)}
+          className="accent-primary"
+        />
+        <span>
+          自動裁頭尾空白{' '}
+          <span className="text-xs text-txt-dim">(loop-ready，需 run-local)</span>
+        </span>
+      </label>
+
       <div className={g.instrumental ? 'opacity-40' : ''}>
         <label className="mb-2 block text-xs font-medium text-txt-sec">歌詞 (Lyrics)</label>
         <textarea

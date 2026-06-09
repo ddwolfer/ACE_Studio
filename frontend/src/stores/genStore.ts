@@ -20,6 +20,8 @@ interface GenState {
   setExtra: (v: string) => void
   setLyrics: (v: string) => void
   setInstrumental: (v: boolean) => void
+  autoTrim: boolean
+  setAutoTrim: (v: boolean) => void
   setParam: <K extends keyof GenParams>(k: K, v: GenParams[K]) => void
   setCurrent: (item: LibraryItem) => void
   generate: () => Promise<void>
@@ -49,6 +51,7 @@ export const useGen = create<GenState>((set, get) => ({
   extra: '',
   instrumental: true,
   lyrics: '[Instrumental]',
+  autoTrim: true,
   params: defaultParams,
   status: 'idle',
   progress: 0,
@@ -58,6 +61,7 @@ export const useGen = create<GenState>((set, get) => ({
   setExtra: (v) => set({ extra: v }),
   setLyrics: (v) => set({ lyrics: v }),
   setInstrumental: (v) => set({ instrumental: v }),
+  setAutoTrim: (v) => set({ autoTrim: v }),
   setParam: (k, v) => set({ params: { ...get().params, [k]: v } as GenParams }),
   setCurrent: (item) => set({ current: item }),
   generate: async () => {
@@ -118,6 +122,23 @@ export const useGen = create<GenState>((set, get) => ({
             durationSec: Number(inner.metas?.duration) || params.duration,
             type: 'bgm',
             createdAt: new Date().toISOString(),
+          }
+          // 生成後自動裁掉頭尾空白 → loop-ready 檔（需 run-local 本機服務；失敗則保留原檔）
+          if (get().autoTrim) {
+            try {
+              const tr = await fetch('http://127.0.0.1:8787/trim-silence', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ path: item.audioPath }),
+              })
+              const tj = await tr.json()
+              if (tj?.ok && tj.out) {
+                item.audioPath = tj.out
+                item.audioUrl = '/api/v1/audio?path=' + encodeURIComponent(tj.out)
+              }
+            } catch {
+              /* run-local 未啟動 → 用原檔 */
+            }
           }
           useLibrary.getState().add(item)
           set({ status: 'done', progress: 100, current: item })
