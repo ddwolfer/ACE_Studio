@@ -8,7 +8,10 @@ export default function Library() {
   const setCurrent = useGen((s) => s.setCurrent)
 
   return (
-    <aside className="flex w-80 shrink-0 flex-col gap-3 border-l border-edge bg-panel p-3">
+    <aside
+      className="fade-up flex w-80 shrink-0 flex-col gap-3 border-l border-edge bg-panel/80 p-3 backdrop-blur"
+      style={{ animationDelay: '0.16s' }}
+    >
       <div className="text-xs font-semibold text-txt-sec">音檔庫</div>
 
       {items.length === 0 ? (
@@ -20,7 +23,7 @@ export default function Library() {
       ) : (
         <div className="flex flex-col gap-1 overflow-y-auto">
           {items.map((it) => (
-            <div key={it.id} className="group flex items-center gap-2 rounded-md p-2 hover:bg-input">
+            <div key={it.id} className="group flex items-center gap-2 rounded-md p-2 transition hover:bg-input">
               <button onClick={() => setCurrent(it)} className="text-primary">
                 <Play size={14} />
               </button>

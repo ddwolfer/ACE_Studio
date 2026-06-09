@@ -13,7 +13,7 @@ export default function TopBar() {
 
   return (
     <header
-      className="flex items-center gap-4 border-b border-edge bg-panel px-5"
+      className="fade-up flex items-center gap-4 border-b border-edge bg-panel/90 px-5 backdrop-blur"
       style={{ height: 52 }}
     >
       <div className="flex items-center gap-2">
@@ -37,7 +37,7 @@ export default function TopBar() {
         <ChevronDown size={14} />
       </label>
       <div className="flex items-center gap-2 text-xs">
-        <span className={`inline-block h-2 w-2 rounded-full ${dot}`} />
+        <span className={`inline-block h-2 w-2 rounded-full ${dot} ${ready || initializing ? 'dot-pulse' : ''}`} />
         <span className={ready ? 'text-primary' : 'text-txt-sec'}>{statusText}</span>
       </div>
       <button

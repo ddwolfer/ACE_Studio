@@ -14,8 +14,11 @@ export default {
         txt: { DEFAULT: '#E5E7EB', sec: '#9CA3AF', dim: '#6B7280' },
       },
       fontFamily: {
-        ui: ['Inter', 'system-ui', 'sans-serif'],
+        ui: ['Sora', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+      },
+      boxShadow: {
+        glow: '0 10px 34px -8px rgba(52, 211, 153, 0.45)',
       },
     },
   },

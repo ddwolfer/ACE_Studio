@@ -18,7 +18,7 @@ export default function SingleGen() {
           onChange={(e) => g.setBase(e.target.value)}
           rows={3}
           placeholder="例：epic orchestral battle, war drums, 140 BPM"
-          className="w-full resize-none rounded-md border border-edge bg-input p-3 text-sm outline-none focus:border-primary"
+          className="w-full resize-none rounded-md border border-edge bg-input p-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
         />
       </div>
 
@@ -28,7 +28,7 @@ export default function SingleGen() {
           value={g.extra}
           onChange={(e) => g.setExtra(e.target.value)}
           placeholder="例：lots of reverb, wide stereo"
-          className="w-full rounded-md border border-edge bg-input p-2.5 text-sm outline-none focus:border-primary"
+          className="w-full rounded-md border border-edge bg-input p-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
         />
       </div>
 
@@ -49,7 +49,7 @@ export default function SingleGen() {
           disabled={g.instrumental}
           onChange={(e) => g.setLyrics(e.target.value)}
           rows={3}
-          className="w-full resize-none rounded-md border border-edge bg-input p-3 text-sm outline-none focus:border-primary"
+          className="w-full resize-none rounded-md border border-edge bg-input p-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
         />
       </div>
 
@@ -65,7 +65,7 @@ export default function SingleGen() {
           step={1}
           value={g.params.duration}
           onChange={(e) => g.setParam('duration', Number(e.target.value))}
-          className="w-full accent-primary"
+          className="range w-full"
         />
       </div>
 
@@ -83,7 +83,7 @@ export default function SingleGen() {
       <button
         onClick={() => g.generate()}
         disabled={!ready || busy}
-        className="flex items-center justify-center gap-2 rounded-lg bg-primary py-3.5 font-bold text-[#0E1014] disabled:opacity-50"
+        className="flex items-center justify-center gap-2 rounded-lg bg-primary py-3.5 font-bold text-[#0E1014] shadow-glow transition hover:brightness-110 active:scale-[.99] disabled:opacity-50 disabled:shadow-none"
       >
         <Music size={18} />
         {busy ? `生成中… ${g.progress}%` : ready ? '生成音樂' : '請先初始化服務'}
