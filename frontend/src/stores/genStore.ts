@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { api } from '../api/acestepClient'
+import { api, parseResult } from '../api/acestepClient'
 import { composeCaption } from '../lib/promptCompose'
 import { useLibrary } from './libraryStore'
 import type { GenParams, LibraryItem } from '../lib/types'
@@ -26,7 +26,7 @@ interface GenState {
 }
 
 const defaultParams: GenParams = {
-  model: 'acestep-v15-xl-turbo',
+  model: 'acestep-v15-turbo', // 2B：8GB 友善（XL 4B 需 ≥12GB）
   duration: 60,
   steps: 8,
   cfg: 7,
@@ -91,14 +91,19 @@ export const useGen = create<GenState>((set, get) => ({
 
       for (let i = 0; i < 240; i++) {
         await delay(1500)
-        set({ progress: Math.min(92, 8 + i * 4) })
         const arr = await api.query(taskId)
-        const res = Array.isArray(arr) ? arr[0] : (arr as any)
-        const raw: string | undefined = res?.raw_audio_paths?.[0]
-        const st = String(res?.status ?? '').toLowerCase()
-        if (raw) {
-          const seedNum = res?.seed_value
-            ? Number(String(res.seed_value).split(',')[0]) || params.seed
+        const outer = Array.isArray(arr) ? arr[0] : undefined
+        const inner = outer ? parseResult(outer) : null
+        if (!inner) continue
+        if (typeof inner.progress === 'number') {
+          set({ progress: Math.max(5, Math.round(inner.progress * 100)) })
+        }
+        const file = inner.file || ''
+        const succeeded =
+          inner.status === 1 || (inner.progress ?? 0) >= 1 || String(inner.stage).toLowerCase() === 'succeeded'
+        if (succeeded && file) {
+          const seedNum = inner.seed_value
+            ? Number(String(inner.seed_value).split(',')[0]) || params.seed
             : params.seed
           const item: LibraryItem = {
             id: crypto.randomUUID(),
@@ -108,9 +113,9 @@ export const useGen = create<GenState>((set, get) => ({
             extra,
             lyrics: finalLyrics,
             params: { ...params, seed: seedNum },
-            audioPath: raw,
-            audioUrl: api.audioUrl(raw),
-            durationSec: Number((res?.metas as any)?.duration) || params.duration,
+            audioPath: decodeURIComponent(file.split('path=')[1] || ''),
+            audioUrl: api.audioUrl(file),
+            durationSec: Number(inner.metas?.duration) || params.duration,
             type: 'bgm',
             createdAt: new Date().toISOString(),
           }
@@ -118,8 +123,8 @@ export const useGen = create<GenState>((set, get) => ({
           set({ status: 'done', progress: 100, current: item })
           return
         }
-        if (st.includes('fail') || st.includes('error')) {
-          throw new Error(res?.status_message || `生成失敗 (status=${st})`)
+        if (String(inner.stage).toLowerCase().match(/fail|error/)) {
+          throw new Error(inner.stage || '生成失敗')
         }
       }
       throw new Error('輪詢逾時（請確認引擎仍在運作）')

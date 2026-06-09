@@ -18,14 +18,33 @@ export interface ReleaseReq {
   batch_size: number
 }
 
-export interface QueryResultItem {
-  status?: string
-  first_audio_path?: string
-  audio_paths?: string[]
-  raw_audio_paths?: string[]
+// /query_result 回傳 data = QueryOuter[]；其中 result 是 JSON 字串，
+// parse 後取 [0] 得 QueryInner（實測格式，見 docs/IMPLEMENTATION-SPEC §3）
+export interface QueryOuter {
+  task_id: string
+  result: string
+  status: number
+  progress_text?: string
+}
+export interface QueryInner {
+  file?: string // 形如 /v1/audio?path=<urlencoded fs path>（可直接前綴 /api 播放）
+  wave?: string
+  status?: number // 0=running, 1=succeeded
+  progress?: number // 0..1
+  stage?: string
   seed_value?: string
-  status_message?: string
-  metas?: Record<string, unknown>
+  metas?: Record<string, any>
+  prompt?: string
+  lyrics?: string
+}
+
+export function parseResult(item: QueryOuter): QueryInner | null {
+  try {
+    const arr = JSON.parse(item.result)
+    return Array.isArray(arr) ? arr[0] : arr
+  } catch {
+    return null
+  }
 }
 
 // 引擎回應外層為 wrap_response({code,data,error})；解開取 data。
@@ -58,7 +77,8 @@ export const api = {
   stats: () => getJson('/v1/stats'),
   init: (model: string, initLlm = false) => post('/v1/init', { model, init_llm: initLlm }),
   release: (p: ReleaseReq): Promise<any> => post('/release_task', p),
-  query: (taskId: string): Promise<QueryResultItem[]> =>
+  query: (taskId: string): Promise<QueryOuter[]> =>
     post('/query_result', { task_id_list: JSON.stringify([taskId]) }),
-  audioUrl: (rawPath: string) => `${BASE}/v1/audio?path=${encodeURIComponent(rawPath)}`,
+  // inner.file 已是 /v1/audio?path=...，前綴 /api 即可播放
+  audioUrl: (file: string) => `${BASE}${file}`,
 }

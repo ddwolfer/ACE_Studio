@@ -13,10 +13,12 @@ interface ServiceState {
   init: () => Promise<void>
 }
 
-const DEFAULT_MODEL = 'acestep-v15-xl-turbo'
+// 2B turbo 為 8GB 友善預設；XL(4B) 需 ≥12GB（見 docs/WEB-UI-GUIDE）
+const DEFAULT_MODEL = 'acestep-v15-turbo'
+const KNOWN_MODELS = ['acestep-v15-turbo', 'acestep-v15-xl-turbo', 'acestep-v15-xl-sft']
 
 export const useService = create<ServiceState>((set, get) => ({
-  models: [DEFAULT_MODEL],
+  models: KNOWN_MODELS,
   model: DEFAULT_MODEL,
   ready: false,
   initializing: false,
