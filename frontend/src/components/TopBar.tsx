@@ -18,7 +18,9 @@ export default function TopBar() {
     >
       <div className="flex items-center gap-2">
         <Music size={18} className="text-primary" />
-        <span className="font-bold">ACE Studio</span>
+        <span className="text-sm font-extrabold uppercase tracking-[0.2em]">
+          ACE <span className="text-txt-sec">Studio</span>
+        </span>
       </div>
       <div className="flex-1" />
       <label className="flex items-center gap-2 rounded-md bg-input px-3 py-1.5 text-xs text-txt-sec">

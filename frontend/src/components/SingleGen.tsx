@@ -83,7 +83,7 @@ export default function SingleGen() {
       <button
         onClick={() => g.generate()}
         disabled={!ready || busy}
-        className="flex items-center justify-center gap-2 rounded-lg bg-primary py-3.5 font-bold text-[#0E1014] shadow-glow transition hover:brightness-110 active:scale-[.99] disabled:opacity-50 disabled:shadow-none"
+        className="flex items-center justify-center gap-2 rounded-lg bg-primary py-3 font-semibold text-[#0E1014] transition hover:brightness-105 active:scale-[.99] disabled:opacity-40"
       >
         <Music size={18} />
         {busy ? `生成中… ${g.progress}%` : ready ? '生成音樂' : '請先初始化服務'}

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Play, Pause, FolderOpen, Copy, Volume2, VolumeX } from 'lucide-react'
+import { Play, Pause, Repeat1, FolderOpen, Copy, Volume2, VolumeX } from 'lucide-react'
 import WaveSurfer from 'wavesurfer.js'
 import { useGen } from '../stores/genStore'
 
@@ -10,10 +10,16 @@ export default function TransportBar() {
   const current = useGen((s) => s.current)
   const containerRef = useRef<HTMLDivElement>(null)
   const wsRef = useRef<WaveSurfer | null>(null)
+  const loopRef = useRef(false)
   const [playing, setPlaying] = useState(false)
   const [time, setTime] = useState('0:00 / 0:00')
   const [copied, setCopied] = useState(false)
   const [volume, setVolume] = useState(0.8)
+  const [loop, setLoop] = useState(false)
+
+  useEffect(() => {
+    loopRef.current = loop
+  }, [loop])
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -26,9 +32,9 @@ export default function TransportBar() {
     const ws = WaveSurfer.create({
       container: containerRef.current,
       height: 40,
-      waveColor: ['#3a4150', '#2a3140'],
-      progressColor: ['#34D399', '#A78BFA'],
-      cursorColor: '#A78BFA',
+      waveColor: '#384150',
+      progressColor: '#34D399',
+      cursorColor: '#e5e7eb',
       cursorWidth: 1,
       barWidth: 2,
       barGap: 2,
@@ -44,15 +50,21 @@ export default function TransportBar() {
     ws.on('timeupdate', update)
     ws.on('play', () => setPlaying(true))
     ws.on('pause', () => setPlaying(false))
-    ws.on('finish', () => setPlaying(false))
-
+    ws.on('finish', () => {
+      // 單曲循環：聽 BGM 的 loop 接點是否順
+      if (loopRef.current) {
+        ws.seekTo(0)
+        ws.play()
+      } else {
+        setPlaying(false)
+      }
+    })
     return () => {
       ws.destroy()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current])
 
-  // 音量變動即時套用
   useEffect(() => {
     wsRef.current?.setVolume(volume)
   }, [volume])
@@ -66,27 +78,39 @@ export default function TransportBar() {
 
   return (
     <footer
-      className="fade-up flex items-center gap-4 border-t border-edge bg-panel/90 px-5 backdrop-blur"
+      className="fade-up flex items-center gap-3 border-t border-edge bg-panel/90 px-5 backdrop-blur"
       style={{ height: 66, animationDelay: '0.2s' }}
     >
       <button
         onClick={() => wsRef.current?.playPause()}
         disabled={!current}
-        className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-[#0E1014] shadow-glow transition active:scale-95 disabled:bg-input disabled:text-txt-dim disabled:shadow-none"
+        className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-[#0E1014] transition hover:brightness-110 active:scale-95 disabled:bg-input disabled:text-txt-dim"
       >
         {playing ? <Pause size={18} /> : <Play size={18} className="translate-x-px" />}
       </button>
 
-      <div className="w-44 shrink-0">
+      <button
+        onClick={() => setLoop((v) => !v)}
+        disabled={!current}
+        title="單曲循環（試聽 BGM loop 接點）"
+        className={`flex h-9 w-9 items-center justify-center rounded-full transition disabled:opacity-40 ${
+          loop ? 'bg-primary/15 text-primary' : 'text-txt-sec hover:text-txt'
+        }`}
+      >
+        <Repeat1 size={17} />
+      </button>
+
+      <div className="ml-1 w-44 shrink-0">
         <div className="truncate text-sm font-medium text-txt">{current?.title ?? '尚無播放'}</div>
-        <div className="truncate text-[11px] text-txt-dim">{current?.finalCaption ?? '生成後在此播放'}</div>
+        <div className="truncate text-[11px] text-txt-dim">
+          {current ? (loop ? '單曲循環中' : current.finalCaption) : '生成後在此播放'}
+        </div>
       </div>
 
       <div ref={containerRef} className="min-w-0 flex-1" />
 
       <div className="w-[88px] shrink-0 text-right font-mono text-xs text-txt-sec">{time}</div>
 
-      {/* 音量控制 */}
       <div className="flex shrink-0 items-center gap-2">
         <button
           onClick={() => setVolume((v) => (v > 0 ? 0 : 0.8))}
@@ -105,20 +129,19 @@ export default function TransportBar() {
           onChange={(e) => setVolume(Number(e.target.value))}
           title={`音量 ${Math.round(volume * 100)}%`}
         />
-        <span className="w-8 font-mono text-[11px] text-txt-dim">{Math.round(volume * 100)}</span>
       </div>
 
       <button
         disabled
         title="M3 開放：在檔案總管開啟所在資料夾"
-        className="flex shrink-0 items-center gap-1.5 rounded-md bg-input px-3 py-1.5 text-xs text-txt-dim opacity-50"
+        className="flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs text-txt-dim opacity-50"
       >
         <FolderOpen size={14} /> 打開本地目錄
       </button>
       <button
         onClick={copyPrompt}
         disabled={!current}
-        className="flex shrink-0 items-center gap-1.5 rounded-md border border-edge px-3 py-1.5 text-xs text-txt-sec transition hover:border-primary/50 hover:text-txt disabled:opacity-40"
+        className="flex shrink-0 items-center gap-1.5 rounded-md border border-edge px-3 py-1.5 text-xs text-txt-sec transition hover:text-txt disabled:opacity-40"
       >
         <Copy size={14} /> {copied ? '已複製' : '複製 prompt'}
       </button>
