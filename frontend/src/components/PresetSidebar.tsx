@@ -27,7 +27,7 @@ export default function PresetSidebar() {
             setBase(p.base)
             setParam('duration', p.duration)
           }}
-          className="rounded-md border-l-2 border-transparent px-3 py-2 text-left transition hover:border-primary/60 hover:bg-input"
+          className="rounded-md px-3 py-2 text-left transition hover:bg-input"
         >
           <div className="text-sm">{p.label}</div>
           <div className="truncate text-[11px] text-txt-dim">

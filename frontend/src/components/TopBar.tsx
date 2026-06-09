@@ -18,7 +18,7 @@ export default function TopBar() {
     >
       <div className="flex items-center gap-2">
         <Music size={18} className="text-primary" />
-        <span className="text-sm font-extrabold uppercase tracking-[0.2em]">
+        <span className="font-display text-base font-extrabold uppercase tracking-[0.18em]">
           ACE <span className="text-txt-sec">Studio</span>
         </span>
       </div>

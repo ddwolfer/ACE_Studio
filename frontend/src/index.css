@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,10 +10,10 @@ body,
 }
 body {
   margin: 0;
-  color: #e5e7eb;
-  font-family: 'Sora', system-ui, sans-serif;
-  /* 近黑、克制：色彩交給內容（封面圖），不靠 chrome 發光 */
-  background-color: #0c0e12;
+  /* 暖調近黑（tinted，非純灰）；色彩交給內容（封面） */
+  color: #ece6dd;
+  font-family: 'Hanken Grotesk', system-ui, sans-serif;
+  background-color: #14110e;
 }
 
 *::-webkit-scrollbar {
@@ -21,14 +21,14 @@ body {
   height: 8px;
 }
 *::-webkit-scrollbar-thumb {
-  background: #262c36;
+  background: #322b23;
   border-radius: 4px;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: #333b47;
+  background: #44392e;
 }
 
-/* ---- 動效（克制） ---- */
+/* ---- 動效（克制，無彈跳） ---- */
 @keyframes fadeUp {
   from {
     opacity: 0;
@@ -46,14 +46,14 @@ body {
 @keyframes dotPulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.5);
+    box-shadow: 0 0 0 0 rgba(232, 162, 76, 0.5);
   }
   50% {
-    box-shadow: 0 0 0 5px rgba(52, 211, 153, 0);
+    box-shadow: 0 0 0 5px rgba(232, 162, 76, 0);
   }
 }
 .dot-pulse {
-  animation: dotPulse 1.6s ease-out infinite;
+  animation: dotPulse 1.7s ease-out infinite;
 }
 
 /* ---- 自訂滑桿（音量 / 長度） ---- */
@@ -62,7 +62,7 @@ input[type='range'].range {
   appearance: none;
   height: 4px;
   border-radius: 999px;
-  background: #262c36;
+  background: #322b23;
   outline: none;
   cursor: pointer;
 }
@@ -72,18 +72,18 @@ input[type='range'].range::-webkit-slider-thumb {
   width: 13px;
   height: 13px;
   border-radius: 50%;
-  background: #e5e7eb;
-  border: 2px solid #0c0e12;
+  background: #ece6dd;
+  border: 2px solid #14110e;
   transition: background 0.15s ease;
 }
 input[type='range'].range:hover::-webkit-slider-thumb {
-  background: #34d399;
+  background: #e8a24c;
 }
 input[type='range'].range::-moz-range-thumb {
   width: 13px;
   height: 13px;
-  border: 2px solid #0c0e12;
+  border: 2px solid #14110e;
   border-radius: 50%;
-  background: #e5e7eb;
+  background: #ece6dd;
   cursor: pointer;
 }

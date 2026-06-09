@@ -1,24 +1,25 @@
-/** ACE Studio DAW 深色配色（對應 docs/FRONTEND-SPEC.md §2） */
+/** ACE Studio — 暖調工作室（tinted darks + amber accent；參考 impeccable 規則） */
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        base: '#0E1014',
-        panel: '#171A21',
-        input: '#1F2430',
-        edge: '#2A3140',
-        primary: '#34D399',
-        secondary: '#A78BFA',
-        danger: '#F87171',
-        txt: { DEFAULT: '#E5E7EB', sec: '#9CA3AF', dim: '#6B7280' },
+        base: '#14110E', // 暖調近黑
+        panel: '#1C1814', // 暖炭面板（比 base 亮一階，靠色階分層）
+        input: '#252019', // 輸入/抬升層
+        edge: '#322B23', // 細描邊（暖，謹慎使用）
+        primary: '#E8A24C', // 琥珀（取代 AI 薄荷綠）
+        secondary: '#C98A3E',
+        danger: '#E5736B',
+        txt: { DEFAULT: '#ECE6DD', sec: '#A79C8E', dim: '#6E6457' },
       },
       fontFamily: {
-        ui: ['Sora', 'system-ui', 'sans-serif'],
+        ui: ['"Hanken Grotesk"', 'system-ui', 'sans-serif'],
+        display: ['"Bricolage Grotesque"', '"Hanken Grotesk"', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
       boxShadow: {
-        glow: '0 10px 34px -8px rgba(52, 211, 153, 0.45)',
+        glow: '0 10px 30px -12px rgba(232, 162, 76, 0.4)',
       },
     },
   },

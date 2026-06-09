@@ -32,9 +32,9 @@ export default function TransportBar() {
     const ws = WaveSurfer.create({
       container: containerRef.current,
       height: 40,
-      waveColor: '#384150',
-      progressColor: '#34D399',
-      cursorColor: '#e5e7eb',
+      waveColor: '#3A332B',
+      progressColor: '#E8A24C',
+      cursorColor: '#ECE6DD',
       cursorWidth: 1,
       barWidth: 2,
       barGap: 2,
