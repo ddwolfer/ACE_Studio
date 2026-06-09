@@ -32,3 +32,6 @@ __pycache__/
 Thumbs.db
 .idea/
 .vscode/
+
+# dual-plan 渲染檔（plan.md 才是正本）
+plans/**/plan.html
