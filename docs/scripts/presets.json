@@ -1,0 +1,89 @@
+{
+  "_comment": "遊戲場景 → ACE-Step prompt 預設對照表。被 batch_game_bgm.py 讀取。所有皆為純音樂(instrumental)。",
+  "presets": [
+    {
+      "name": "main_menu",
+      "label": "主選單 / 標題畫面",
+      "tags": "ambient, cinematic, soft synth pad, gentle piano, calm, hopeful, 70 BPM, instrumental",
+      "duration": 60
+    },
+    {
+      "name": "exploration",
+      "label": "探索 / 世界地圖",
+      "tags": "orchestral adventure, strings, flute, light percussion, uplifting, wonder, 100 BPM, instrumental",
+      "duration": 90
+    },
+    {
+      "name": "town_peaceful",
+      "label": "小鎮 / 和平區域",
+      "tags": "folk, acoustic guitar, accordion, warm, cozy, playful, 110 BPM, instrumental",
+      "duration": 60
+    },
+    {
+      "name": "battle",
+      "label": "一般戰鬥",
+      "tags": "epic orchestral battle, war drums, brass, fast strings, intense, heroic, 140 BPM, instrumental",
+      "duration": 60
+    },
+    {
+      "name": "boss",
+      "label": "Boss 戰",
+      "tags": "dark epic orchestral, choir, heavy drums, dissonant brass, ominous, powerful, 150 BPM, instrumental",
+      "duration": 75
+    },
+    {
+      "name": "stealth_tension",
+      "label": "潛行 / 緊張",
+      "tags": "dark ambient, low drone, sparse percussion, tense, eerie, 80 BPM, instrumental",
+      "duration": 60
+    },
+    {
+      "name": "victory",
+      "label": "勝利 jingle",
+      "tags": "triumphant orchestral fanfare, brass, timpani, choir, victorious, 120 BPM, instrumental",
+      "duration": 10
+    },
+    {
+      "name": "game_over",
+      "label": "失敗 / Game Over",
+      "tags": "descending sad piano, somber strings, melancholic, slow, instrumental",
+      "duration": 8
+    },
+    {
+      "name": "retro_8bit",
+      "label": "復古像素關卡",
+      "tags": "chiptune, 8-bit, energetic, arpeggio, retro game, adventurous, 150 BPM, instrumental",
+      "duration": 45
+    },
+    {
+      "name": "ambient_cave",
+      "label": "洞窟氛圍",
+      "tags": "dark ambient drone, cave, reverb, eerie, no melody, instrumental",
+      "duration": 60
+    },
+    {
+      "name": "ambient_space",
+      "label": "太空氛圍",
+      "tags": "space ambient, ethereal pad, cosmic, slow, instrumental",
+      "duration": 90
+    },
+    {
+      "name": "sfx_levelup",
+      "label": "升級 / 獲得物品音效",
+      "tags": "magical sparkle arpeggio, harp, bells, uplifting, short, instrumental",
+      "duration": 4
+    },
+    {
+      "name": "sfx_transition",
+      "label": "過場 stinger",
+      "tags": "cinematic transition, swell, brass hit, riser, dramatic, short, instrumental",
+      "duration": 4
+    },
+    {
+      "name": "sfx_ui_chime",
+      "label": "UI 提示音(音樂性)",
+      "tags": "single bright synth chime, bell, clean, short, instrumental",
+      "duration": 3
+    }
+  ]
+}
