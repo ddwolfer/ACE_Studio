@@ -1,8 +1,11 @@
+import { useState } from 'react'
 import { Music, ChevronDown, Settings, RefreshCw } from 'lucide-react'
 import { useService } from '../stores/serviceStore'
+import SettingsModal from './SettingsModal'
 
 export default function TopBar() {
   const { models, model, setModel, ready, initializing, statusText, init } = useService()
+  const [showSettings, setShowSettings] = useState(false)
   const dot = ready
     ? 'bg-primary'
     : initializing
@@ -50,7 +53,10 @@ export default function TopBar() {
         <RefreshCw size={13} className={initializing ? 'animate-spin' : ''} />
         初始化服務
       </button>
-      <Settings size={18} className="text-txt-sec" />
+      <button onClick={() => setShowSettings(true)} className="text-txt-sec transition hover:text-txt" title="設定">
+        <Settings size={18} />
+      </button>
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
     </header>
   )
 }

@@ -1,13 +1,17 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import type { GenParams, LibraryItem } from '../lib/types'
 
 // 表單狀態 + 目前播放曲目。實際生成走 queueStore（統一佇列）。
+// M3：params / autoTrim / trimThresh 持久化（設定 modal 調整後跨重啟保留）。
 interface GenState {
   base: string
   extra: string
   instrumental: boolean
   lyrics: string
   autoTrim: boolean
+  /** 自動裁切的靜音判定閾值（振幅 0~1，越大裁越多） */
+  trimThresh: number
   params: GenParams
   current: LibraryItem | null
   setBase: (v: string) => void
@@ -15,6 +19,7 @@ interface GenState {
   setLyrics: (v: string) => void
   setInstrumental: (v: boolean) => void
   setAutoTrim: (v: boolean) => void
+  setTrimThresh: (v: number) => void
   setParam: <K extends keyof GenParams>(k: K, v: GenParams[K]) => void
   setCurrent: (item: LibraryItem) => void
 }
@@ -30,19 +35,35 @@ const defaultParams: GenParams = {
   format: 'wav',
 }
 
-export const useGen = create<GenState>((set, get) => ({
-  base: 'epic orchestral battle, war drums, brass, 140 BPM',
-  extra: '',
-  instrumental: true,
-  lyrics: '[Instrumental]',
-  autoTrim: true,
-  params: defaultParams,
-  current: null,
-  setBase: (v) => set({ base: v }),
-  setExtra: (v) => set({ extra: v }),
-  setLyrics: (v) => set({ lyrics: v }),
-  setInstrumental: (v) => set({ instrumental: v }),
-  setAutoTrim: (v) => set({ autoTrim: v }),
-  setParam: (k, v) => set({ params: { ...get().params, [k]: v } as GenParams }),
-  setCurrent: (item) => set({ current: item }),
-}))
+export const useGen = create<GenState>()(
+  persist(
+    (set, get) => ({
+      base: 'epic orchestral battle, war drums, brass, 140 BPM',
+      extra: '',
+      instrumental: true,
+      lyrics: '[Instrumental]',
+      autoTrim: true,
+      trimThresh: 0.006,
+      params: defaultParams,
+      current: null,
+      setBase: (v) => set({ base: v }),
+      setExtra: (v) => set({ extra: v }),
+      setLyrics: (v) => set({ lyrics: v }),
+      setInstrumental: (v) => set({ instrumental: v }),
+      setAutoTrim: (v) => set({ autoTrim: v }),
+      setTrimThresh: (v) => set({ trimThresh: v }),
+      setParam: (k, v) => set({ params: { ...get().params, [k]: v } as GenParams }),
+      setCurrent: (item) => set({ current: item }),
+    }),
+    {
+      name: 'ace-studio-gen',
+      partialize: (s) => ({ params: s.params, autoTrim: s.autoTrim, trimThresh: s.trimThresh }),
+      // params 深合併：日後新增參數時，舊的 localStorage 不會蓋掉新預設值
+      merge: (persisted: any, current) => ({
+        ...current,
+        ...(persisted ?? {}),
+        params: { ...current.params, ...(persisted?.params ?? {}) },
+      }),
+    },
+  ),
+)

@@ -15,7 +15,16 @@ export default function SingleGen() {
     if (!canGen) return
     const label = final.split(',')[0].trim().slice(0, 18) || 'BGM'
     enqueue(
-      { base: g.base, extra: g.extra, instrumental: g.instrumental, lyrics: g.lyrics, params: g.params, autoTrim: g.autoTrim },
+      {
+        base: g.base,
+        extra: g.extra,
+        instrumental: g.instrumental,
+        lyrics: g.lyrics,
+        // model 以頂欄目前選擇為準（避免切模型後仍送舊值）
+        params: { ...g.params, model: useService.getState().model },
+        autoTrim: g.autoTrim,
+        trimThresh: g.trimThresh,
+      },
       label,
     )
   }

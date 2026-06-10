@@ -2,6 +2,7 @@
 engine/
 
 # --- 執行輸出 / 音檔 / 音檔庫索引 ---
+library/
 outputs/
 gen_outputs/
 *.wav

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Play, Pause, Repeat1, FolderOpen, Copy, Volume2, VolumeX } from 'lucide-react'
 import WaveSurfer from 'wavesurfer.js'
 import { useGen } from '../stores/genStore'
+import { local } from '../lib/localHelper'
 
 const fmt = (s: number) =>
   Number.isFinite(s) ? `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}` : '0:00'
@@ -134,12 +135,8 @@ export default function TransportBar() {
   const openFolder = async () => {
     if (!current) return
     try {
-      const r = await fetch('http://127.0.0.1:8787/open-folder', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path: current.audioPath }),
-      })
-      if (!r.ok) throw new Error()
+      const r = await local.openFolder(current.audioPath)
+      if (!r?.ok) throw new Error()
       setFolderErr(false)
     } catch {
       setFolderErr(true)

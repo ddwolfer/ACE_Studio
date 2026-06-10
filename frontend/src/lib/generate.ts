@@ -1,5 +1,6 @@
 import { api, parseResult } from '../api/acestepClient'
 import { composeCaption } from './promptCompose'
+import { local } from './localHelper'
 import type { GenParams, LibraryItem } from './types'
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -11,6 +12,8 @@ export interface GenInput {
   lyrics: string
   params: GenParams
   autoTrim: boolean
+  /** 自動裁切的靜音閾值（未給用腳本預設 0.006） */
+  trimThresh?: number
 }
 
 function makeTitle(caption: string): string {
@@ -24,7 +27,7 @@ export async function generateTrack(
   input: GenInput,
   onProgress?: (p: number) => void,
 ): Promise<LibraryItem> {
-  const { base, extra, instrumental, lyrics, params, autoTrim } = input
+  const { base, extra, instrumental, lyrics, params, autoTrim, trimThresh } = input
   const caption = composeCaption(base, extra)
   if (!caption) throw new Error('請先輸入曲風描述')
   const finalLyrics = instrumental ? '[Instrumental]' : lyrics || '[Instrumental]'
@@ -80,20 +83,17 @@ export async function generateTrack(
       }
       // 生成後自動裁頭尾空白（需 run-local；失敗則用原檔）
       if (autoTrim) {
-        try {
-          const tr = await fetch('http://127.0.0.1:8787/trim-silence', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ path: item.audioPath }),
-          })
-          const tj = await tr.json()
-          if (tj?.ok && tj.out) {
-            item.audioPath = tj.out
-            item.audioUrl = '/api/v1/audio?path=' + encodeURIComponent(tj.out)
-          }
-        } catch {
-          /* run-local 未啟動 → 保留原檔 */
+        const out = await local.trimSilence(item.audioPath, trimThresh)
+        if (out) {
+          item.audioPath = out
+          item.audioUrl = '/api/v1/audio?path=' + encodeURIComponent(out)
         }
+      }
+      // M3 落地：複製出引擎暫存（tmp 隨時可能被清）→ library/audio/，改用 helper 播放 URL
+      const imp = await local.importAudio(item.audioPath, item.id)
+      if (imp) {
+        item.audioPath = imp.path
+        item.audioUrl = imp.url
       }
       onProgress?.(100)
       return item
