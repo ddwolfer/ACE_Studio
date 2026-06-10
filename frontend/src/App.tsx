@@ -3,6 +3,7 @@ import { useService } from './stores/serviceStore'
 import TopBar from './components/TopBar'
 import CreatePanel from './components/CreatePanel'
 import Library from './components/Library'
+import QueueDrawer from './components/QueueDrawer'
 import TransportBar from './components/TransportBar'
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
       <div className="flex min-h-0 flex-1">
         <CreatePanel />
         <Library />
+        <QueueDrawer />
       </div>
       <TransportBar />
     </div>
