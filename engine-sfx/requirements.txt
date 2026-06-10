@@ -1,0 +1,10 @@
+# SFX 引擎相依（torch 另外裝 CUDA 版，見 setup-sfx.ps1）
+diffusers>=0.31
+transformers>=4.44
+accelerate>=0.34
+soundfile>=0.12
+fastapi>=0.110
+uvicorn>=0.29
+huggingface_hub[cli]>=0.24
+sentencepiece
+protobuf

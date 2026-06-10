@@ -1,15 +1,19 @@
-import { PRESETS } from '../lib/presets'
+import { PRESETS, SFX_PRESETS } from '../lib/presets'
 import { useGen } from '../stores/genStore'
 
 export default function PresetSidebar() {
+  const genType = useGen((s) => s.genType)
   const setBase = useGen((s) => s.setBase)
   const setParam = useGen((s) => s.setParam)
+  const list = genType === 'sfx' ? SFX_PRESETS : PRESETS
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="text-[11px] font-semibold uppercase tracking-wider text-txt-sec">場景範本</div>
+      <div className="text-[11px] font-semibold uppercase tracking-wider text-txt-sec">
+        {genType === 'sfx' ? '音效範本' : '場景範本'}
+      </div>
       <div className="grid grid-cols-2 gap-1.5">
-        {PRESETS.map(({ label, Icon, base, duration }) => (
+        {list.map(({ label, Icon, base, duration }) => (
           <button
             key={label}
             onClick={() => {

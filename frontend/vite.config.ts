@@ -14,6 +14,12 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/api/, ''),
       },
+      // SFX 引擎（Stable Audio Open wrapper，run-sfx.ps1）
+      '/sfx': {
+        target: 'http://127.0.0.1:8002',
+        changeOrigin: true,
+        rewrite: (p) => p.replace(/^\/sfx/, ''),
+      },
     },
   },
 })

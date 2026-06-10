@@ -5,6 +5,7 @@ engine/
 library/
 outputs/
 gen_outputs/
+engine-sfx/out/
 *.wav
 *.mp3
 *.flac

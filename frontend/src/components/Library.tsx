@@ -60,8 +60,15 @@ export default function Library() {
                   </button>
 
                   <div className="min-w-0 flex-1">
-                    <div className={`truncate text-[15px] font-medium ${active ? 'text-primary' : 'text-txt'}`}>
-                      {it.title}
+                    <div className="flex items-center gap-2">
+                      <span className={`truncate text-[15px] font-medium ${active ? 'text-primary' : 'text-txt'}`}>
+                        {it.title}
+                      </span>
+                      {it.type === 'sfx' && (
+                        <span className="shrink-0 rounded border border-edge px-1 py-px font-mono text-[9px] uppercase tracking-wider text-txt-sec">
+                          sfx
+                        </span>
+                      )}
                     </div>
                     <div className="line-clamp-2 text-xs leading-snug text-txt-dim">{it.finalCaption}</div>
                   </div>

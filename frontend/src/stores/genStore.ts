@@ -5,6 +5,8 @@ import type { GenParams, LibraryItem } from '../lib/types'
 // 表單狀態 + 目前播放曲目。實際生成走 queueStore（統一佇列）。
 // M3：params / autoTrim / trimThresh 持久化（設定 modal 調整後跨重啟保留）。
 interface GenState {
+  /** 生成類型：bgm = ACE-Step(:8001)，sfx = Stable Audio Open(:8002) */
+  genType: 'bgm' | 'sfx'
   base: string
   extra: string
   instrumental: boolean
@@ -14,6 +16,7 @@ interface GenState {
   trimThresh: number
   params: GenParams
   current: LibraryItem | null
+  setGenType: (v: 'bgm' | 'sfx') => void
   setBase: (v: string) => void
   setExtra: (v: string) => void
   setLyrics: (v: string) => void
@@ -38,6 +41,7 @@ const defaultParams: GenParams = {
 export const useGen = create<GenState>()(
   persist(
     (set, get) => ({
+      genType: 'bgm',
       base: 'epic orchestral battle, war drums, brass, 140 BPM',
       extra: '',
       instrumental: true,
@@ -46,6 +50,7 @@ export const useGen = create<GenState>()(
       trimThresh: 0.006,
       params: defaultParams,
       current: null,
+      setGenType: (v) => set({ genType: v }),
       setBase: (v) => set({ base: v }),
       setExtra: (v) => set({ extra: v }),
       setLyrics: (v) => set({ lyrics: v }),

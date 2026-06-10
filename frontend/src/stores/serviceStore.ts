@@ -8,9 +8,12 @@ interface ServiceState {
   initializing: boolean
   statusText: string
   error: string | null
+  /** SFX 引擎（:8002 經 /sfx proxy）是否在線 */
+  sfxOk: boolean
   loadModels: () => Promise<void>
   setModel: (m: string) => void
   init: () => Promise<void>
+  checkSfx: () => Promise<void>
 }
 
 // 2B turbo 為 8GB 友善預設；XL(4B) 需 ≥12GB（見 docs/WEB-UI-GUIDE）
@@ -24,6 +27,7 @@ export const useService = create<ServiceState>((set, get) => ({
   initializing: false,
   statusText: '未初始化',
   error: null,
+  sfxOk: false,
   loadModels: async () => {
     // 注意：引擎 /v1/models 會回傳 LLM 目錄（物件，含 pricing 等），不是 DiT 模型。
     // 只接受字串且過濾出 acestep-v15*；否則保留內建清單。確保 models 永遠是 string[]。
@@ -53,6 +57,15 @@ export const useService = create<ServiceState>((set, get) => ({
     }
   },
   setModel: (m) => set({ model: m }),
+  checkSfx: async () => {
+    try {
+      const r = await fetch('/sfx/health')
+      const j = await r.json()
+      set({ sfxOk: !!j?.ok })
+    } catch {
+      set({ sfxOk: false })
+    }
+  },
   init: async () => {
     set({ initializing: true, statusText: '載入中…', error: null })
     try {

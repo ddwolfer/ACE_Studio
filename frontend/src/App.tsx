@@ -9,11 +9,13 @@ import TransportBar from './components/TransportBar'
 
 export default function App() {
   const loadModels = useService((s) => s.loadModels)
+  const checkSfx = useService((s) => s.checkSfx)
   const hydrateLibrary = useLibrary((s) => s.hydrate)
   useEffect(() => {
     loadModels()
+    void checkSfx() // M4：偵測 SFX 引擎（:8002）是否在線
     void hydrateLibrary() // M3：從磁碟 library.json 載入（沒開 run-local 則維持 localStorage）
-  }, [loadModels, hydrateLibrary])
+  }, [loadModels, checkSfx, hydrateLibrary])
 
   return (
     <div className="relative z-10 flex h-full flex-col font-ui text-txt">
