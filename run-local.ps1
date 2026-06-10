@@ -1,2 +1,2 @@
-# ACE Studio 本機小幫手（讓「打開本地目錄」等功能可用；純 Node 無相依）
-node "$PSScriptRoot\server\index.mjs"
+# ACE Studio local helper (open-folder / trim-silence). Pure Node, no dependencies.
+node (Join-Path $PSScriptRoot 'server\index.mjs')

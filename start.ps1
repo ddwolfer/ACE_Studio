@@ -1,14 +1,18 @@
-# 一鍵啟動 ACE Studio：引擎 + 本機小幫手 + 前端（Windows）
-# 用法： .\start.ps1
+# One-command launcher for ACE Studio: engine + local helper + frontend (Windows).
+# Usage: .\start.ps1
+# (ASCII-only on purpose: Windows PowerShell 5.1 mis-parses UTF-8-no-BOM CJK inside strings.)
 $root = $PSScriptRoot
+$engineScript = Join-Path $root 'run-engine.ps1'
+$localScript = Join-Path $root 'run-local.ps1'
+$frontend = Join-Path $root 'frontend'
 
-Write-Host "==> 啟動 ACE-Step 引擎（新視窗，載入模型需一點時間）..." -ForegroundColor Cyan
-Start-Process powershell -ArgumentList '-NoExit', '-Command', "& '$root\run-engine.ps1'"
+Write-Host "==> Starting ACE-Step engine (new window; model load takes a bit)..." -ForegroundColor Cyan
+Start-Process powershell -ArgumentList '-NoExit', '-Command', "& '$engineScript'"
 
-Write-Host "==> 啟動本機小幫手（新視窗：開檔總管 / 裁靜音）..." -ForegroundColor Cyan
-Start-Process powershell -ArgumentList '-NoExit', '-Command', "& '$root\run-local.ps1'"
+Write-Host "==> Starting local helper (new window; open-folder / trim-silence)..." -ForegroundColor Cyan
+Start-Process powershell -ArgumentList '-NoExit', '-Command', "& '$localScript'"
 
-Write-Host "==> 啟動前端 dev（本視窗）..." -ForegroundColor Cyan
-Write-Host "    瀏覽器開 http://localhost:5173；等引擎視窗顯示 Uvicorn running 後，按介面「初始化服務」" -ForegroundColor DarkGray
-Set-Location "$root\frontend"
+Write-Host "==> Starting frontend dev (this window)." -ForegroundColor Cyan
+Write-Host "    Open http://localhost:5173 ; after the engine window shows 'Uvicorn running', click 'Initialize service' in the app." -ForegroundColor DarkGray
+Set-Location $frontend
 npm run dev
