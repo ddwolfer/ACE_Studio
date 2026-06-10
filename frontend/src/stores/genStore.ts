@@ -1,8 +1,7 @@
 import { create } from 'zustand'
-import { generateTrack } from '../lib/generate'
-import { useLibrary } from './libraryStore'
 import type { GenParams, LibraryItem } from '../lib/types'
 
+// 表單狀態 + 目前播放曲目。實際生成走 queueStore（統一佇列）。
 interface GenState {
   base: string
   extra: string
@@ -10,9 +9,6 @@ interface GenState {
   lyrics: string
   autoTrim: boolean
   params: GenParams
-  status: 'idle' | 'generating' | 'done' | 'error'
-  progress: number
-  error: string | null
   current: LibraryItem | null
   setBase: (v: string) => void
   setExtra: (v: string) => void
@@ -21,7 +17,6 @@ interface GenState {
   setAutoTrim: (v: boolean) => void
   setParam: <K extends keyof GenParams>(k: K, v: GenParams[K]) => void
   setCurrent: (item: LibraryItem) => void
-  generate: () => Promise<void>
 }
 
 const defaultParams: GenParams = {
@@ -42,9 +37,6 @@ export const useGen = create<GenState>((set, get) => ({
   lyrics: '[Instrumental]',
   autoTrim: true,
   params: defaultParams,
-  status: 'idle',
-  progress: 0,
-  error: null,
   current: null,
   setBase: (v) => set({ base: v }),
   setExtra: (v) => set({ extra: v }),
@@ -53,18 +45,4 @@ export const useGen = create<GenState>((set, get) => ({
   setAutoTrim: (v) => set({ autoTrim: v }),
   setParam: (k, v) => set({ params: { ...get().params, [k]: v } as GenParams }),
   setCurrent: (item) => set({ current: item }),
-  generate: async () => {
-    const s = get()
-    set({ status: 'generating', progress: 4, error: null })
-    try {
-      const item = await generateTrack(
-        { base: s.base, extra: s.extra, instrumental: s.instrumental, lyrics: s.lyrics, params: s.params, autoTrim: s.autoTrim },
-        (p) => set({ progress: p }),
-      )
-      useLibrary.getState().add(item)
-      set({ status: 'done', progress: 100, current: item })
-    } catch (e: any) {
-      set({ status: 'error', error: e?.message ?? String(e) })
-    }
-  },
 }))

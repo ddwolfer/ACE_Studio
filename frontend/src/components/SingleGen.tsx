@@ -1,13 +1,24 @@
 import { Music } from 'lucide-react'
 import { useGen } from '../stores/genStore'
 import { useService } from '../stores/serviceStore'
+import { useQueue } from '../stores/queueStore'
 import { composeCaption } from '../lib/promptCompose'
 
 export default function SingleGen() {
   const g = useGen()
   const ready = useService((s) => s.ready)
+  const enqueue = useQueue((s) => s.enqueue)
   const final = composeCaption(g.base, g.extra)
-  const busy = g.status === 'generating'
+  const canGen = ready && !!g.base.trim()
+
+  const onGenerate = () => {
+    if (!canGen) return
+    const label = final.split(',')[0].trim().slice(0, 18) || 'BGM'
+    enqueue(
+      { base: g.base, extra: g.extra, instrumental: g.instrumental, lyrics: g.lyrics, params: g.params, autoTrim: g.autoTrim },
+      label,
+    )
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -33,25 +44,14 @@ export default function SingleGen() {
       </div>
 
       <label className="flex items-center gap-3 text-sm">
-        <input
-          type="checkbox"
-          checked={g.instrumental}
-          onChange={(e) => g.setInstrumental(e.target.checked)}
-          className="accent-primary"
-        />
+        <input type="checkbox" checked={g.instrumental} onChange={(e) => g.setInstrumental(e.target.checked)} className="accent-primary" />
         純音樂 (Instrumental)
       </label>
 
       <label className="flex items-center gap-3 text-sm">
-        <input
-          type="checkbox"
-          checked={g.autoTrim}
-          onChange={(e) => g.setAutoTrim(e.target.checked)}
-          className="accent-primary"
-        />
+        <input type="checkbox" checked={g.autoTrim} onChange={(e) => g.setAutoTrim(e.target.checked)} className="accent-primary" />
         <span>
-          自動裁頭尾空白{' '}
-          <span className="text-xs text-txt-dim">(loop-ready，需 run-local)</span>
+          自動裁頭尾空白 <span className="text-xs text-txt-dim">(loop-ready，需 run-local)</span>
         </span>
       </label>
 
@@ -87,20 +87,15 @@ export default function SingleGen() {
         <span className="font-mono text-txt">{final || '（空）'}</span>
       </div>
 
-      {g.error && (
-        <div className="rounded-md border-l-2 border-danger bg-danger/10 p-2 text-xs text-danger">
-          {g.error}
-        </div>
-      )}
-
       <button
-        onClick={() => g.generate()}
-        disabled={!ready || busy}
-        className="flex items-center justify-center gap-2 rounded-lg bg-primary py-3 font-semibold text-[#0E1014] transition hover:brightness-105 active:scale-[.99] disabled:opacity-40"
+        onClick={onGenerate}
+        disabled={!canGen}
+        className="flex items-center justify-center gap-2 rounded-lg bg-primary py-3 font-semibold text-[#14110E] transition hover:brightness-105 active:scale-[.99] disabled:opacity-40"
       >
         <Music size={18} />
-        {busy ? `生成中… ${g.progress}%` : ready ? '生成音樂' : '請先初始化服務'}
+        {ready ? '生成音樂' : '請先初始化服務'}
       </button>
+      <p className="-mt-2 text-center text-[11px] text-txt-dim">按一下加入下方佇列，可連續排多首</p>
     </div>
   )
 }
