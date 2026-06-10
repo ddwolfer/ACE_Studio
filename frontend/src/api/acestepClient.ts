@@ -73,6 +73,7 @@ async function getJson(path: string): Promise<any> {
 }
 
 export const api = {
+  health: () => getJson('/health'),
   models: () => getJson('/v1/models'),
   stats: () => getJson('/v1/stats'),
   init: (model: string, initLlm = false) => post('/v1/init', { model, init_llm: initLlm }),

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Check, ListPlus, Play, Trash2 } from 'lucide-react'
 import { PRESETS } from '../lib/presets'
 import { useBatch } from '../stores/batchStore'
+import { useService } from '../stores/serviceStore'
 
 const statusText: Record<string, string> = { queued: '等待', running: '生成中', done: '完成', error: '失敗' }
 const statusColor: Record<string, string> = {
@@ -13,6 +14,7 @@ const statusColor: Record<string, string> = {
 
 export default function BatchGen() {
   const { jobs, running, extra, setExtra, enqueue, clear, start } = useBatch()
+  const ready = useService((s) => s.ready)
   const [sel, setSel] = useState<Record<string, boolean>>({})
   const [count, setCount] = useState(1)
 
@@ -83,9 +85,17 @@ export default function BatchGen() {
       {jobs.length > 0 && (
         <div className="flex flex-col gap-1">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-txt-sec">佇列 {jobs.length}</span>
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-txt-sec">
+              佇列 {jobs.length}
+              {!ready && <span className="ml-1 normal-case text-txt-dim">· 需先初始化服務</span>}
+            </span>
             <div className="flex gap-3">
-              <button onClick={start} disabled={running} className="flex items-center gap-1 text-xs text-primary transition disabled:opacity-40">
+              <button
+                onClick={start}
+                disabled={running || !ready}
+                title={ready ? '' : '請先按右上角「初始化服務」'}
+                className="flex items-center gap-1 text-xs text-primary transition disabled:opacity-40"
+              >
                 <Play size={12} /> {running ? '生成中…' : '開始'}
               </button>
               <button onClick={clear} className="flex items-center gap-1 text-xs text-txt-sec transition hover:text-danger">

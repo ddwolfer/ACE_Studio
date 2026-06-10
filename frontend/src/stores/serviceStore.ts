@@ -40,6 +40,17 @@ export const useService = create<ServiceState>((set, get) => ({
     } catch {
       /* 引擎未啟動或格式不符時忽略，維持內建清單 */
     }
+    // 偵測引擎真實狀態：若 server 端已初始化，前端直接標記就緒（不必再按按鈕）
+    try {
+      const h = await api.health()
+      if (h?.models_initialized) {
+        set({ ready: true, statusText: '就緒' })
+        const lm = h?.loaded_model
+        if (typeof lm === 'string' && lm.startsWith('acestep-v15')) set({ model: lm })
+      }
+    } catch {
+      /* 引擎未啟動 */
+    }
   },
   setModel: (m) => set({ model: m }),
   init: async () => {
