@@ -1,10 +1,12 @@
 # SFX 引擎相依（torch 另外裝 CUDA 版，見 setup-sfx.ps1）
 diffusers>=0.31
-transformers>=4.44
+# 釘 4.51.x：transformers 5.x 需要 torch.float8_e8m0fnu（torch 2.7+），與 torch 2.6+cu124 不相容
+transformers==4.51.3
 accelerate>=0.34
 soundfile>=0.12
 fastapi>=0.110
 uvicorn>=0.29
-huggingface_hub[cli]>=0.24
+# transformers 4.51 需要 hub <1.0
+huggingface_hub[cli]>=0.24,<1.0
 sentencepiece
 protobuf
