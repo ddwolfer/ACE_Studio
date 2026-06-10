@@ -58,11 +58,11 @@ POST /generate
 ### 4.1 安裝（獨立環境，避免和 ACE-Step 套件衝突）
 ```powershell
 cd D:\AI\ACE_Studio
-uv venv engine-sfx\.venv
-engine-sfx\.venv\Scripts\python -m pip install diffusers transformers torch soundfile fastapi uvicorn huggingface_hub
+.\setup-sfx.ps1                              # 建 venv + torch(cu124) + diffusers 等
 # 下載 gated 權重需先登入（貼上 HF token）
-engine-sfx\.venv\Scripts\huggingface-cli login
+engine-sfx\.venv\Scripts\hf.exe auth login
 ```
+完整步驟（含 HF 授權頁操作）見 **engine-sfx/README.md**。實作為 `engine-sfx/sfx_api.py`（比下方最小版多了 /health、/release 還 VRAM、CPU offload、路徑防護）。
 
 ### 4.2 最小 wrapper：`engine-sfx/sfx_api.py`（用 diffusers 的 StableAudioPipeline）
 ```python
