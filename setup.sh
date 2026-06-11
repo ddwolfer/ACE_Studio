@@ -21,12 +21,12 @@ else
   echo "==> 已偵測到 engine/（略過 clone）"
 fi
 
-# 2. 相依 + 模型
+# 2. 相依 + 模型（v15-turbo 2B：app 預設、8GB 友善）
 cd "$ENGINE"
 echo "==> uv sync ..."
 uv sync
-echo "==> 下載 XL Turbo 模型（已存在會略過）..."
-uv run acestep-download --model acestep-v15-xl-turbo
+echo "==> 下載 v15-turbo 模型（已存在會略過）..."
+uv run acestep-download --model acestep-v15-turbo
 cd "$ROOT"
 
 # 3. 前端
@@ -35,8 +35,6 @@ if [ -f "$ROOT/frontend/package.json" ]; then
   (cd "$ROOT/frontend" && npm install)
 fi
 
-# 4. .env
-[ -f "$ROOT/.env" ] || { cp "$ROOT/.env.example" "$ROOT/.env"; echo "==> 已建立 .env"; }
-
 echo ""
-echo "✅ 安裝完成。啟動：bash run-engine.sh  然後  cd frontend && npm run dev"
+echo "✅ 安裝完成。啟動： bash start.sh（全部服務 + 前端）"
+echo "   選配：SFX 引擎 bash setup-sfx.sh；Claude Code MCP： cd mcp-server && npm install"

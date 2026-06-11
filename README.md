@@ -1,64 +1,76 @@
 # 🎵 ACE Studio
 
-> 用文字快速產生**遊戲背景音樂 (BGM) 與音效**的本地工具。
-> 深色音樂工作站 (DAW) 風格介面，底層由開源的 [ACE-Step 1.5 XL](https://github.com/ace-step/ACE-Step-1.5) 音樂模型驅動。
+**繁體中文** | [English](README.en.md)
 
-把「描述一段音樂 → 生成 → 試聽 → 管理」整個流程做成一個好用的介面，並可選用 **Claude AI 助手**直接用講的下需求。
+> 用文字快速產生**遊戲背景音樂 (BGM) 與音效 (SFX)** 的本地工具。
+> 深色音樂工作站 (DAW) 風格介面；BGM 由開源 [ACE-Step 1.5](https://github.com/ace-step/ACE-Step-1.5) 驅動，短音效由 [Stable Audio Open](https://huggingface.co/stabilityai/stable-audio-open-1.0) 驅動，並可透過 **MCP** 讓 Claude Code 用自然語言下單。
 
 ---
 
 ## 這是什麼 / 架構
 
-ACE Studio 是**前端產品**；ACE-Step 是它連線使用的**引擎**（兩者解耦，引擎不進版控）。
+ACE Studio 是**前端產品**；兩個生成引擎是它連線使用的**外部服務**（解耦，引擎不進版控）。
 
 ```
-┌──────────────────────┐  HTTP   ┌───────────────────────┐
-│ 前端 (React+Vite)     │ ──────▶ │ engine/  ACE-Step API  │  ← 127.0.0.1:8001
-│ 單首/批次/定時/模板    │         │ (acestep-api, 含模型)   │
-│ 音檔庫 + 波形播放器    │         └───────────────────────┘
-│ AI 助手聊天           │  HTTP
-└─────────┬────────────┘ ──────▶ ┌───────────────────────┐
-          │ /chat (tool-use)      │ server/ Claude 代理     │ ─▶ Anthropic API
-          └──────────────────────▶│ + 開檔總管 + 音檔庫寫檔 │
-                                   └───────────────────────┘
+┌─────────────────────┐  /api   ┌──────────────────────────────┐
+│ 前端 React+Vite      │ ──────▶ │ engine/      ACE-Step (BGM)   │ :8001
+│ :5173               │  /sfx   ├──────────────────────────────┤
+│ BGM/SFX 切換、佇列    │ ──────▶ │ engine-sfx/  Stable Audio(SFX)│ :8002
+│ 音檔庫、波形播放器     │  HTTP   ├──────────────────────────────┤
+└─────────────────────┘ ──────▶ │ server/      本機 helper       │ :8787
+                                 │ （裁靜音/落地音檔庫/開資料夾）   │
+   Claude Code ──MCP(stdio)──▶  └──────────────────────────────┘
+   （mcp-server/，自然語言生成，打同樣三個服務）
 ```
 
 ---
 
 ## 需求
 
-- **Windows / macOS / Linux**；建議 **NVIDIA GPU ≥ 8GB VRAM**（8GB 用 XL Turbo + offload 可跑）。
+- **Windows / macOS / Linux**
+  - Windows/Linux：建議 **NVIDIA GPU ≥ 8GB VRAM**（8GB 開 offload 可跑，腳本已內建）
+  - macOS：Apple Silicon 走 **MPS**（速度較慢但可用；引擎另有 `engine/start_api_server_macos.sh`）
 - [uv](https://docs.astral.sh/uv/)（Python 環境管理，setup 會自動裝）
-- **Node.js 18+**（前端）
+- **Node.js 18+**（前端 / helper / MCP）
 - **ffmpeg**（音訊輸出）
 
 ---
 
-## 一鍵安裝
+## 從 clone 到跑起來
 
 ```powershell
-git clone <你的-repo-url> ACE_Studio
+git clone https://github.com/ddwolfer/ACE_Studio.git
 cd ACE_Studio
-# Windows
-powershell -ExecutionPolicy Bypass -File .\setup.ps1
-# macOS / Linux： bash setup.sh
+
+# 1) 主程式（BGM 引擎 + 模型 + 前端）
+powershell -ExecutionPolicy Bypass -File .\setup.ps1   # macOS/Linux： bash setup.sh
+
+# 2)（可選）SFX 引擎——要產 0.5–8 秒短音效才需要
+.\setup-sfx.ps1                                        # macOS/Linux： bash setup-sfx.sh
+#    然後兩步手動授權（gated 模型，詳見 engine-sfx/README.md）：
+#    a. 登入 HF 到模型頁按「Agree and access repository」
+#    b. engine-sfx\.venv\Scripts\hf.exe auth login     # mac: engine-sfx/.venv/bin/hf
+
+# 3)（可選）Claude Code MCP 接口
+cd mcp-server; npm install; cd ..
 ```
 
-`setup` 會：把 ACE-Step 引擎裝到 `engine/`（已存在則略過）→ `uv sync` → 下載 **XL Turbo** 模型 → 裝前端相依 → 建立 `.env`。
+`setup` 會：clone ACE-Step 引擎到 `engine/` → `uv sync` → 下載 v15-turbo 模型（2B，8GB 友善）→ 裝前端相依。
 
-> 模型權重會下載到 `engine/checkpoints/`（數 GB），**不會進版控**。
+> 模型權重下載到 `engine/checkpoints/`（數 GB）與 HF cache，**不進版控**。
 
 ---
 
 ## 啟動
 
-**Windows 一鍵**：雙擊 `start.cmd`（= 引擎 :8001 + 本機 helper :8787 + SFX 引擎 :8002 + 前端，各開一個視窗）。
+- **Windows**：雙擊 `start.cmd`（= BGM 引擎 :8001 + helper :8787 + SFX :8002 + 前端，各開一個視窗）
+- **macOS / Linux**：`bash start.sh`（同樣全開，背景執行，Ctrl-C 一起關）
 
 ```powershell
 # 或個別啟動：
 .\run-engine.ps1                 # BGM 引擎（macOS/Linux： bash run-engine.sh）
-.\run-local.ps1                  # 本機 helper（開資料夾/裁切/音檔庫落地）
-.\run-sfx.ps1                    # SFX 引擎（先跑過一次 setup-sfx.ps1）
+.\run-local.ps1                  # 本機 helper（macOS/Linux： bash run-local.sh）
+.\run-sfx.ps1                    # SFX 引擎（macOS/Linux： bash run-sfx.sh）
 cd frontend; npm run dev         # 前端
 ```
 
@@ -78,20 +90,21 @@ Claude 會自動拆任務、寫英文 prompt、逐一呼叫生成工具；成品
 
 ```
 ACE_Studio/
-├── README.md            ← 你在這
-├── start.cmd            ← Windows 一鍵啟動（雙擊）
-├── setup.ps1 / setup.sh ← 一鍵安裝（裝引擎+模型+前端）
-├── setup-sfx.ps1        ← SFX 引擎安裝（一次）
-├── run-engine.* / run-local.* / run-sfx.ps1
-├── .mcp.json            ← Claude Code 自動載入 MCP server
-├── frontend/            ← React + Vite 前端
-├── server/              ← 本機 helper :8787（開資料夾 / 裁靜音 / 音檔庫落地）
-├── mcp-server/          ← MCP server（Claude Code 等 AI 客戶端驅動生成）
-├── engine-sfx/          ← SFX 引擎 :8002（Stable Audio Open；.venv 與 out/ gitignore）
-├── docs/                ← 所有文件（見下）
-├── design/              ← 設計稿來源說明（frontend.pen）
-├── engine/              ← (gitignore) ACE-Step 引擎 + 模型，由 setup 安裝
-└── library/             ← (gitignore) 音檔庫落地（library.json + audio/）
+├── README.md / README.en.md ← 你在這（中 / 英）
+├── CLAUDE.md                ← AI 助手（Claude Code 等）開專案自動讀的導覽
+├── start.cmd / start.sh     ← 一鍵啟動（Windows 雙擊 / mac·Linux bash）
+├── setup.ps1 / setup.sh     ← 一鍵安裝（裝引擎+模型+前端）
+├── setup-sfx.ps1 / .sh      ← SFX 引擎安裝（一次）
+├── run-engine.* / run-local.* / run-sfx.*
+├── .mcp.json                ← Claude Code 自動載入 MCP server
+├── frontend/                ← React + Vite 前端
+├── server/                  ← 本機 helper :8787（開資料夾 / 裁靜音 / 音檔庫落地）
+├── mcp-server/              ← MCP server（Claude Code 等 AI 客戶端驅動生成）
+├── engine-sfx/              ← SFX 引擎 :8002（Stable Audio Open；.venv 與 out/ gitignore）
+├── docs/                    ← 所有文件（見下）
+├── design/                  ← 設計稿來源說明（frontend.pen）
+├── engine/                  ← (gitignore) ACE-Step 引擎 + 模型，由 setup 安裝
+└── library/                 ← (gitignore) 音檔庫落地（library.json + audio/）
 ```
 
 ---

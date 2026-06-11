@@ -30,7 +30,18 @@ MODEL_ID = "stabilityai/stable-audio-open-1.0"
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
 os.makedirs(OUT, exist_ok=True)
 
-DEVICE = os.environ.get("SFX_DEVICE") or ("cuda" if torch.cuda.is_available() else "cpu")
+def _pick_device() -> str:
+    if os.environ.get("SFX_DEVICE"):
+        return os.environ["SFX_DEVICE"]
+    if torch.cuda.is_available():
+        return "cuda"
+    mps = getattr(torch.backends, "mps", None)
+    if mps is not None and mps.is_available():
+        return "mps"  # Apple Silicon
+    return "cpu"
+
+
+DEVICE = _pick_device()
 CPU_OFFLOAD = os.environ.get("SFX_CPU_OFFLOAD", "true").lower() == "true"
 
 app = FastAPI(title="ACE Studio SFX (Stable Audio Open)")
@@ -48,10 +59,11 @@ def get_pipe():
 
         pipe = StableAudioPipeline.from_pretrained(
             MODEL_ID,
+            # MPS 用 fp32：fp16 在部分 mac 上會出 NaN/無聲
             torch_dtype=torch.float16 if DEVICE == "cuda" else torch.float32,
         )
         if DEVICE == "cuda" and CPU_OFFLOAD:
-            pipe.enable_model_cpu_offload()  # 子模組輪流進 GPU，8GB 友善
+            pipe.enable_model_cpu_offload()  # 子模組輪流進 GPU，8GB 友善（僅 CUDA 支援）
         else:
             pipe = pipe.to(DEVICE)
         _pipe = pipe
@@ -122,6 +134,8 @@ def release():
     gc.collect()
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
+    elif hasattr(torch, "mps") and hasattr(torch.mps, "empty_cache"):
+        torch.mps.empty_cache()
     return {"ok": True}
 
 

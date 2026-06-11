@@ -22,12 +22,12 @@ if (-not (Test-Path (Join-Path $engine "pyproject.toml"))) {
     Write-Host "==> 已偵測到 engine/（略過 clone）" -ForegroundColor Green
 }
 
-# 2. 安裝引擎相依 + 下載模型
+# 2. 安裝引擎相依 + 下載模型（v15-turbo 2B：app 預設、8GB 友善；想用 XL 可之後自行下載）
 Push-Location $engine
 Write-Host "==> uv sync（安裝相依）..." -ForegroundColor Cyan
 uv sync
-Write-Host "==> 下載 XL Turbo 模型（首次較久；已存在會略過）..." -ForegroundColor Cyan
-uv run acestep-download --model acestep-v15-xl-turbo
+Write-Host "==> 下載 v15-turbo 模型（首次較久；已存在會略過）..." -ForegroundColor Cyan
+uv run acestep-download --model acestep-v15-turbo
 Pop-Location
 
 # 3. 前端相依（若 frontend/ 已有 package.json）
@@ -37,12 +37,5 @@ if (Test-Path (Join-Path $fe "package.json")) {
     Push-Location $fe; npm install; Pop-Location
 }
 
-# 4. .env
-if (-not (Test-Path (Join-Path $root ".env"))) {
-    Copy-Item (Join-Path $root ".env.example") (Join-Path $root ".env")
-    Write-Host "==> 已建立 .env（請填入 ANTHROPIC_API_KEY 若要用 AI 助手）" -ForegroundColor Yellow
-}
-
-Write-Host "`n✅ 安裝完成。啟動：" -ForegroundColor Green
-Write-Host "   1) 引擎： .\run-engine.ps1" -ForegroundColor Green
-Write-Host "   2) 前端： cd frontend; npm run dev（前端做好後）" -ForegroundColor Green
+Write-Host "`n✅ 安裝完成。啟動：雙擊 start.cmd（全部服務 + 前端）" -ForegroundColor Green
+Write-Host "   選配：SFX 引擎跑 .\setup-sfx.ps1；Claude Code MCP 跑 cd mcp-server; npm install" -ForegroundColor Green
