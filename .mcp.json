@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "ace-studio": {
+      "command": "node",
+      "args": ["mcp-server/index.mjs"]
+    }
+  }
+}

@@ -32,15 +32,18 @@ export const local = {
     }
   },
   /** 讀磁碟上的 library.json；helper 沒開回 null */
-  loadLibrary: async (): Promise<{ items: LibraryItem[]; dir: string } | null> => {
+  loadLibrary: async (): Promise<{ items: LibraryItem[]; dir: string; updatedAt: string } | null> => {
     try {
       const j = await (await fetch(HELPER + '/library')).json()
-      return j?.ok ? { items: j.items ?? [], dir: j.dir ?? '' } : null
+      return j?.ok ? { items: j.items ?? [], dir: j.dir ?? '', updatedAt: j.updatedAt ?? '' } : null
     } catch {
       return null
     }
   },
   saveLibrary: (items: LibraryItem[]) => post('/library', { items }).catch(() => null),
+  /** 單筆插入/移除：伺服器端原子讀寫（MCP 也走同端點，不會互相蓋寫） */
+  addItem: (item: LibraryItem) => post('/library/add-item', { item }).catch(() => null),
+  removeItem: (id: string) => post('/library/remove-item', { id }).catch(() => null),
   /** 把引擎暫存的音檔複製進 library/audio/，回傳新路徑與播放 URL */
   importAudio: async (path: string, id: string): Promise<{ path: string; url: string } | null> => {
     try {

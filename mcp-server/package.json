@@ -1,0 +1,12 @@
+{
+  "name": "ace-studio-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "ACE Studio MCP server: drive BGM/SFX generation from Claude Code or any MCP client",
+  "main": "index.mjs",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.0"
+  }
+}

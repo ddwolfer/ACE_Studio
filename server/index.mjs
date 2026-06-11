@@ -4,6 +4,8 @@
 //   POST /trim-silence         裁掉頭尾靜音 → 產生 loop-ready 的 _loop.wav（用引擎 venv 的 python）
 //   GET  /library              讀取 library/library.json（M3：音檔庫落地磁碟）
 //   POST /library              覆寫 library/library.json
+//   POST /library/add-item     插入單筆（伺服器端原子讀寫；MCP 與前端共用，避免整份覆寫競態）
+//   POST /library/remove-item  移除單筆 + 連帶刪其音檔
 //   POST /library/import-audio 把生成的音檔複製進 library/audio/（脫離引擎暫存資料夾）
 //   POST /library/delete-audio 刪除 library/audio/ 內指定音檔
 //   GET  /audio/<file>         播放 library/audio/ 內的音檔（支援 Range）
@@ -35,6 +37,21 @@ const MIME = { '.wav': 'audio/wav', '.mp3': 'audio/mpeg', '.flac': 'audio/flac',
 
 function ensureLibDirs() {
   mkdirSync(AUDIO_DIR, { recursive: true })
+}
+
+function readLib() {
+  ensureLibDirs()
+  try {
+    const j = JSON.parse(readFileSync(LIB_JSON, 'utf8'))
+    return { items: j.items || [], updatedAt: j.updatedAt || '' }
+  } catch {
+    return { items: [], updatedAt: '' } // 尚無 library.json → 空庫
+  }
+}
+
+function writeLib(items) {
+  ensureLibDirs()
+  writeFileSync(LIB_JSON, JSON.stringify({ version: 1, updatedAt: new Date().toISOString(), items }, null, 2))
 }
 
 function enginePython() {
@@ -117,23 +134,54 @@ const server = http.createServer(async (req, res) => {
   // ── M3：音檔庫落地 ──────────────────────────────────────────
 
   if (req.method === 'GET' && req.url === '/library') {
-    ensureLibDirs()
-    let items = []
-    try {
-      items = JSON.parse(readFileSync(LIB_JSON, 'utf8')).items || []
-    } catch {
-      /* 尚無 library.json → 空庫 */
-    }
-    return send(res, 200, { ok: true, items, dir: LIB_DIR })
+    const { items, updatedAt } = readLib()
+    return send(res, 200, { ok: true, items, dir: LIB_DIR, updatedAt })
   }
 
   if (req.method === 'POST' && req.url === '/library') {
     const { items } = await readBody(req)
     if (!Array.isArray(items)) return send(res, 400, { ok: false, error: 'items 必須是陣列' })
-    ensureLibDirs()
     try {
-      writeFileSync(LIB_JSON, JSON.stringify({ version: 1, updatedAt: new Date().toISOString(), items }, null, 2))
+      writeLib(items)
       return send(res, 200, { ok: true })
+    } catch (e) {
+      return send(res, 500, { ok: false, error: String((e && e.message) || e) })
+    }
+  }
+
+  // 單筆插入/移除：伺服器端讀最新檔再寫，MCP server 與前端都走這裡可避免互相蓋寫
+  if (req.method === 'POST' && req.url === '/library/add-item') {
+    const { item } = await readBody(req)
+    if (!item || typeof item !== 'object' || !item.id)
+      return send(res, 400, { ok: false, error: 'item 必須是含 id 的物件' })
+    try {
+      const { items } = readLib()
+      writeLib([item, ...items.filter((i) => i.id !== item.id)])
+      return send(res, 200, { ok: true })
+    } catch (e) {
+      return send(res, 500, { ok: false, error: String((e && e.message) || e) })
+    }
+  }
+
+  if (req.method === 'POST' && req.url === '/library/remove-item') {
+    const { id } = await readBody(req)
+    if (!id) return send(res, 400, { ok: false, error: '缺 id' })
+    try {
+      const { items } = readLib()
+      const it = items.find((i) => i.id === id)
+      writeLib(items.filter((i) => i.id !== id))
+      // 已落地的音檔一併刪除（只動 library/audio/ 內、以該 id 命名的檔案）
+      if (it && it.audioPath) {
+        const name = String(it.audioPath).split(/[\\/]/).pop() || ''
+        if (name.startsWith(id) && safeAudioName(name)) {
+          try {
+            unlinkSync(path.join(AUDIO_DIR, name))
+          } catch {
+            /* 占用等 → 忽略 */
+          }
+        }
+      }
+      return send(res, 200, { ok: true, removed: !!it })
     } catch (e) {
       return send(res, 500, { ok: false, error: String((e && e.message) || e) })
     }

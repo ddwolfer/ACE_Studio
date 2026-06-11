@@ -3,6 +3,8 @@ import { Music, Trash2, Play, Copy } from 'lucide-react'
 import { useLibrary } from '../stores/libraryStore'
 import { useGen } from '../stores/genStore'
 import { coverStyle } from '../lib/cover'
+import ConfirmDialog from './ConfirmDialog'
+import type { LibraryItem } from '../lib/types'
 
 const dur = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
 
@@ -19,6 +21,7 @@ export default function Library() {
   const setCurrent = useGen((s) => s.setCurrent)
   const current = useGen((s) => s.current)
   const [filter, setFilter] = useState<Filter>('all')
+  const [pendingDelete, setPendingDelete] = useState<LibraryItem | null>(null)
   // 舊資料沒有 type 欄位 → 視為 bgm
   const shown = items.filter((it) =>
     filter === 'all' ? true : filter === 'sfx' ? it.type === 'sfx' : it.type !== 'sfx',
@@ -114,7 +117,7 @@ export default function Library() {
                       <Copy size={15} />
                     </button>
                     <button
-                      onClick={() => remove(it.id)}
+                      onClick={() => setPendingDelete(it)}
                       className="grid h-8 w-8 place-items-center rounded-md text-txt-sec transition hover:bg-base hover:text-danger"
                       title="刪除"
                     >
@@ -126,6 +129,18 @@ export default function Library() {
             })}
           </div>
         </div>
+      )}
+
+      {pendingDelete && (
+        <ConfirmDialog
+          title="刪除作品"
+          message={`確定要刪除「${pendingDelete.title}」嗎？磁碟上的音檔會一併刪除，無法復原。`}
+          onConfirm={() => {
+            remove(pendingDelete.id)
+            setPendingDelete(null)
+          }}
+          onCancel={() => setPendingDelete(null)}
+        />
       )}
     </main>
   )

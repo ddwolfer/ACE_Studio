@@ -52,16 +52,25 @@ powershell -ExecutionPolicy Bypass -File .\setup.ps1
 
 ## 啟動
 
-```powershell
-# 1) 啟動引擎 API
-.\run-engine.ps1                 # macOS/Linux： bash run-engine.sh
+**Windows 一鍵**：雙擊 `start.cmd`（= 引擎 :8001 + 本機 helper :8787 + SFX 引擎 :8002 + 前端，各開一個視窗）。
 
-# 2) 啟動前端（前端完成後）
-cd frontend
-npm run dev
+```powershell
+# 或個別啟動：
+.\run-engine.ps1                 # BGM 引擎（macOS/Linux： bash run-engine.sh）
+.\run-local.ps1                  # 本機 helper（開資料夾/裁切/音檔庫落地）
+.\run-sfx.ps1                    # SFX 引擎（先跑過一次 setup-sfx.ps1）
+cd frontend; npm run dev         # 前端
 ```
 
 開 `http://localhost:5173` → 在介面按「初始化服務」→ 填曲風/歌詞/長度 → 生成。
+
+## 用 Claude Code 操作（MCP，M5）
+
+專案根目錄有 `.mcp.json`，在這個資料夾打開 Claude Code 就會自動載入 `ace-studio` MCP server（第一次需先 `cd mcp-server && npm install`）。服務照常用 `start.cmd` 開著，然後直接用自然語言下單：
+
+> 幫我做一套 8-bit 風格音效包：金幣、跳躍、受傷各 2 個變化
+
+Claude 會自動拆任務、寫英文 prompt、逐一呼叫生成工具；成品走同一條「裁切 → 落地 `library/`」管線，**app 作品庫 5 秒內自動出現**（不用重新整理）。可用工具：`generate_bgm`、`generate_sfx`、`list_library`、`remove_item`、`studio_status`。任何支援 MCP 的客戶端（Claude Desktop、Cursor…）都能掛同一個 server。
 
 ---
 
@@ -70,14 +79,19 @@ npm run dev
 ```
 ACE_Studio/
 ├── README.md            ← 你在這
+├── start.cmd            ← Windows 一鍵啟動（雙擊）
 ├── setup.ps1 / setup.sh ← 一鍵安裝（裝引擎+模型+前端）
-├── run-engine.* / .env.example
-├── frontend/            ← React + Vite 前端（依設計稿實作）
-├── server/              ← 本機薄代理：Claude /chat + 開檔總管 + 音檔庫寫檔（含可選排程器）
+├── setup-sfx.ps1        ← SFX 引擎安裝（一次）
+├── run-engine.* / run-local.* / run-sfx.ps1
+├── .mcp.json            ← Claude Code 自動載入 MCP server
+├── frontend/            ← React + Vite 前端
+├── server/              ← 本機 helper :8787（開資料夾 / 裁靜音 / 音檔庫落地）
+├── mcp-server/          ← MCP server（Claude Code 等 AI 客戶端驅動生成）
+├── engine-sfx/          ← SFX 引擎 :8002（Stable Audio Open；.venv 與 out/ gitignore）
 ├── docs/                ← 所有文件（見下）
 ├── design/              ← 設計稿來源說明（frontend.pen）
 ├── engine/              ← (gitignore) ACE-Step 引擎 + 模型，由 setup 安裝
-└── outputs/             ← (gitignore) 生成音檔 + library.json
+└── library/             ← (gitignore) 音檔庫落地（library.json + audio/）
 ```
 
 ---
@@ -104,9 +118,12 @@ ACE_Studio/
 - [x] 研究 ACE-Step、prompt 指南、ComfyUI 教學
 - [x] UI 設計稿（Pencil）+ 設計/實作規格
 - [x] 專案結構（引擎解耦、可上 GitHub）
-- [ ] **M1**：走通單首生成（前端 + dev proxy + 播放器 + 音檔庫）
-- [ ] M2：場景/模板 + 批次　/　M3：開檔總管+複製prompt+設定　/　M4：AI 助手　/　M5：定時排程
-- [ ] **M6**：SFX 引擎（預設 Stable Audio Open / 備案 AudioGen）+ BGM/SFX 類型切換 → 同面板產 BGM 與音效
+- [x] **M1**：走通單首生成（前端 + dev proxy + 播放器 + 音檔庫）
+- [x] **M2**：場景/模板 + 統一佇列 + 自動裁切 + 一鍵啟動
+- [x] **M3**：音檔庫落地磁碟 + 設定 modal
+- [x] **M4**：SFX 引擎（Stable Audio Open）+ BGM/SFX 切換 → 同面板產 BGM 與音效
+- [x] **M5**：MCP 接口——用 Claude Code 自然語言驅動生成（`mcp-server/` + `.mcp.json`）
+- 內建聊天面板（M5b）與定時排程（原 M6）：不排（M6 已取消；M5b 視使用情況再議）
 
 ---
 
