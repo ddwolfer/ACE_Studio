@@ -1,9 +1,62 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Music, Volume2 } from 'lucide-react'
 import { useGen } from '../stores/genStore'
 import { useService } from '../stores/serviceStore'
 import { useQueue } from '../stores/queueStore'
 import { composeCaption } from '../lib/promptCompose'
+
+// 可手動輸入的秒數欄：打字期間不干涉（不然輸入「12」會在打「1」時就被夾成 5），
+// 失焦 / Enter 才夾回 min–max 並對齊 step
+function DurationInput({
+  value,
+  min,
+  max,
+  step,
+  onCommit,
+}: {
+  value: number
+  min: number
+  max: number
+  step: number
+  onCommit: (v: number) => void
+}) {
+  const [draft, setDraft] = useState<string | null>(null)
+
+  const commit = () => {
+    if (draft === null) return
+    let n = Number(draft)
+    if (!Number.isFinite(n)) n = value
+    n = Math.min(max, Math.max(min, n))
+    n = Number((Math.round(n / step) * step).toFixed(1)) // 對齊步進，順便去浮點殘渣
+    onCommit(n)
+    setDraft(null)
+  }
+
+  return (
+    <span className="flex items-center gap-1 font-mono text-primary">
+      <input
+        type="number"
+        min={min}
+        max={max}
+        step={step}
+        value={draft ?? value}
+        onFocus={(e) => {
+          setDraft(String(value))
+          e.target.select()
+        }}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+          if (e.key === 'Escape') setDraft(null)
+        }}
+        title={`可直接輸入 ${min}–${max} 秒`}
+        className="w-14 rounded border border-transparent bg-transparent text-right outline-none transition [appearance:textfield] hover:border-edge focus:border-primary focus:bg-input [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+      />
+      秒
+    </span>
+  )
+}
 
 export default function SingleGen() {
   const g = useGen()
@@ -125,9 +178,15 @@ export default function SingleGen() {
       )}
 
       <div>
-        <div className="mb-2 flex justify-between text-xs">
-          <span className="font-medium text-txt-sec">{isSfx ? '長度（0.5–8 秒）' : '長度（最小 5 秒）'}</span>
-          <span className="font-mono text-primary">{g.params.duration} 秒</span>
+        <div className="mb-2 flex items-center justify-between text-xs">
+          <span className="font-medium text-txt-sec">{isSfx ? '長度（0.5–8 秒）' : '長度（5–120 秒）'}</span>
+          <DurationInput
+            value={g.params.duration}
+            min={isSfx ? 0.5 : 5}
+            max={isSfx ? 8 : 120}
+            step={isSfx ? 0.5 : 1}
+            onCommit={(v) => g.setParam('duration', v)}
+          />
         </div>
         <input
           type="range"
