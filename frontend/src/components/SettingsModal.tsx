@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import { X, FolderOpen, HardDrive, Sliders, Scissors } from 'lucide-react'
 import { useGen } from '../stores/genStore'
 import { useLibrary } from '../stores/libraryStore'
@@ -5,12 +6,13 @@ import { local } from '../lib/localHelper'
 
 // M3 設定頁：進階生成參數 + 自動裁切閾值 + 資料儲存狀態。
 // 這些值存在 genStore（localStorage 持久化），不需要存檔按鈕——改了即生效。
+// portal 到 body：TopBar 的 backdrop-blur 會讓 fixed 改以頂欄為定位基準，modal 會被切掉。
 export default function SettingsModal({ onClose }: { onClose: () => void }) {
   const g = useGen()
   const diskMode = useLibrary((s) => s.diskMode)
   const dir = useLibrary((s) => s.dir)
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6" onClick={onClose}>
       <div
         className="flex max-h-[85vh] w-[460px] flex-col overflow-hidden rounded-xl border border-edge bg-panel shadow-2xl"
@@ -155,6 +157,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
           </section>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
