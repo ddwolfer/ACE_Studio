@@ -253,9 +253,11 @@ ace-studio/
 1. **M1 — 走通單首**：dev proxy + 啟動 acestep-api(無 key) → init → 單首生成表單 → release/poll → 播放器播放 + 寫 sidecar + 音檔庫列表。（最小可用）✅
 2. **M2 — 場景/模板 + 統一佇列**：左欄範本一鍵帶入；統一生成佇列（右側抽屜）；模板管理；自動裁切；一鍵啟動。✅
 3. **M3 — 音檔庫落地 + 設定 modal**：library.json + library/audio/ 落地磁碟（脫離引擎暫存）；設定頁調進階參數。✅（端點見 §16）
-4. **M4 — SFX 引擎（雙引擎）**：預設 Stable Audio Open 做 0.5–2 秒離散音效；前端加 BGM/SFX 類型切換。見 [SFX-ENGINE.md](SFX-ENGINE.md)。*（2026-06-10 與使用者確認：SFX 提前，原 M6 → M4）*
+4. **M4 — SFX 引擎（雙引擎）**：預設 Stable Audio Open 做 0.5–2 秒離散音效；前端加 BGM/SFX 類型切換。見 [SFX-ENGINE.md](SFX-ENGINE.md)。✅*（2026-06-10 與使用者確認：SFX 提前，原 M6 → M4；2026-06-11 端到端驗證通過）*
 5. **M5 — AI 助手**：Claude 代理 + tool-use 動作卡。（待定）
-6. **M6 — 定時排程**：見 §13。（待定）
+6. ~~**M6 — 定時排程**~~（2026-06-11 與使用者確認：**取消**）
+
+> **M4 收尾（2026-06-11）**：Powered by Stability AI 標註（商用合規）、作品庫 全部/BGM/SFX 篩選、切回 BGM 自動 `POST /sfx/release` 還 VRAM、頂欄模型顯示隨 BGM/SFX 切換、場景範本 prompt 加長（具體配器/情緒/場景描述）。
 
 ---
 

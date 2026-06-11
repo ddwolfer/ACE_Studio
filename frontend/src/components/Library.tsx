@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Music, Trash2, Play, Copy } from 'lucide-react'
 import { useLibrary } from '../stores/libraryStore'
 import { useGen } from '../stores/genStore'
@@ -5,11 +6,23 @@ import { coverStyle } from '../lib/cover'
 
 const dur = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
 
+type Filter = 'all' | 'bgm' | 'sfx'
+const FILTERS: { key: Filter; label: string }[] = [
+  { key: 'all', label: '全部' },
+  { key: 'bgm', label: 'BGM' },
+  { key: 'sfx', label: 'SFX' },
+]
+
 export default function Library() {
   const items = useLibrary((s) => s.items)
   const remove = useLibrary((s) => s.remove)
   const setCurrent = useGen((s) => s.setCurrent)
   const current = useGen((s) => s.current)
+  const [filter, setFilter] = useState<Filter>('all')
+  // 舊資料沒有 type 欄位 → 視為 bgm
+  const shown = items.filter((it) =>
+    filter === 'all' ? true : filter === 'sfx' ? it.type === 'sfx' : it.type !== 'sfx',
+  )
 
   return (
     <main className="fade-up flex min-w-0 flex-1 flex-col" style={{ animationDelay: '0.12s' }}>
@@ -17,9 +30,24 @@ export default function Library() {
         <div>
           <h1 className="font-display text-lg font-bold tracking-tight">我的作品</h1>
           <p className="text-xs text-txt-dim">
-            {items.length > 0 ? `${items.length} 首 · 點封面播放` : '生成的 BGM 會收在這裡'}
+            {items.length > 0 ? `${shown.length} 首 · 點封面播放` : '生成的 BGM 會收在這裡'}
           </p>
         </div>
+        {items.length > 0 && (
+          <div className="flex rounded-lg border border-edge bg-base p-0.5">
+            {FILTERS.map((f) => (
+              <button
+                key={f.key}
+                onClick={() => setFilter(f.key)}
+                className={`rounded-md px-3 py-1 text-xs font-medium transition ${
+                  filter === f.key ? 'bg-input text-primary' : 'text-txt-sec hover:text-txt'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        )}
       </header>
 
       {items.length === 0 ? (
@@ -33,10 +61,14 @@ export default function Library() {
           <div className="text-sm text-txt-sec">還沒有任何作品</div>
           <div className="text-xs">從左側選個場景，生成你的第一首 BGM</div>
         </div>
+      ) : shown.length === 0 ? (
+        <div className="flex flex-1 items-center justify-center text-xs text-txt-dim">
+          沒有{filter === 'sfx' ? ' SFX' : ' BGM'} 類型的作品
+        </div>
       ) : (
         <div className="flex-1 overflow-y-auto px-3 py-3">
           <div className="mx-auto flex max-w-3xl flex-col gap-0.5">
-            {items.map((it) => {
+            {shown.map((it) => {
               const active = current?.id === it.id
               return (
                 <div

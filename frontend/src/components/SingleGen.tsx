@@ -27,6 +27,8 @@ export default function SingleGen() {
     // 長度範圍不同：SFX 0.5–8s，BGM 5–120s → 切換時夾回合理值
     if (t === 'sfx' && g.params.duration > 8) g.setParam('duration', 1.5)
     if (t === 'bgm' && g.params.duration < 5) g.setParam('duration', 60)
+    // 切回 BGM → 釋放 SFX 模型還 VRAM（8GB 卡雙引擎共存策略；下次生成 SFX 會自動重載）
+    if (t === 'bgm') void fetch('/sfx/release', { method: 'POST' }).catch(() => {})
   }
 
   const onGenerate = () => {
@@ -156,6 +158,20 @@ export default function SingleGen() {
           ? '先執行 setup-sfx.ps1（一次）與 run-sfx.ps1，詳見 engine-sfx/README.md'
           : '按一下加入佇列，可連續排多首'}
       </p>
+      {/* Stability 社群授權要求的標註（<$1M 商用免費，需註冊 stability.ai/license） */}
+      {isSfx && (
+        <p className="-mt-2 text-center text-[10px] text-txt-dim">
+          SFX{' '}
+          <a
+            href="https://stability.ai"
+            target="_blank"
+            rel="noreferrer"
+            className="underline decoration-edge underline-offset-2 transition hover:text-txt-sec"
+          >
+            Powered by Stability AI
+          </a>
+        </p>
+      )}
     </div>
   )
 }
